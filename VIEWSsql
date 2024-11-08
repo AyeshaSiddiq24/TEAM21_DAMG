@@ -1,0 +1,143 @@
+//DROP VIEW statements
+DROP VIEW CURRENT_INVENTORY_STATUS;
+DROP VIEW Issued_Books_Details;
+DROP VIEW FINE_DETAILS;
+DROP VIEW BOOK_AUTHOR_DETAILS;
+DROP VIEW MEMBER_ACCOUNT_DETAILS;  -- previously named Member_Account_Status
+DROP VIEW OVERDUE_BOOKS;
+DROP VIEW STAFF_ISSUED_BOOKS;
+
+
+
+//1. Current_Inventory_Status
+CREATE VIEW Current_Inventory_Status AS
+SELECT 
+    B.book_id,
+    B.book_title,
+    C.category_name,
+    P.publisher_name,
+    B.copies_total,
+    B.copies_available
+FROM 
+    BOOK B
+JOIN CATEGORY C ON B.category_id = C.category_id  -- Adjusted to CATEGORY_ID
+JOIN PUBLISHER P ON B.publisher_id = P.publisher_id;  -- Adjusted to PUBLISHER_ID
+
+
+
+//2. Issued_Books_Details
+CREATE VIEW Issued_Books_Details AS
+SELECT 
+    BI.issue_id,
+    B.book_title,
+    M.first_name || ' ' || M.last_name AS member_name,
+    LS.staff_designation AS issued_by_staff,  -- Changed to staff_designation
+    BI.issue_date,
+    BI.return_date,
+    BI.issue_status
+FROM 
+    BOOK_ISSUE BI
+JOIN BOOK B ON BI.book_id = B.book_id
+JOIN MEMBER M ON BI.member_id = M.member_id
+JOIN LIB_STAFF LS ON BI.issued_by_id = LS.issued_by_id
+WHERE 
+    BI.issue_status = 'Issued';
+    
+
+
+//3
+
+CREATE VIEW Fine_Details AS
+SELECT 
+    FD.fine_id,
+    FD.issue_id,
+    M.member_id,
+    M.first_name || ' ' || M.last_name AS member_name,
+    FD.fine_date,
+    FD.fine_total,
+    FP.payment_date,
+    FP.payment_amount
+FROM 
+    FINE_DUE FD
+LEFT JOIN FINE_PAYMENT FP ON FD.issue_id = FP.issue_id  -- Joined on ISSUE_ID
+JOIN MEMBER M ON FD.member_id = M.member_id;
+
+
+//4. Book_Author_Details
+
+//
+
+
+CREATE VIEW Book_Author_Details AS
+SELECT 
+    B.book_id,
+    B.book_title,
+    A.first_name || ' ' || A.last_name AS author_name,
+    P.publisher_name,
+    B.publication_year
+FROM 
+    BOOK B
+JOIN BOOK_AUTHOR BA ON B.book_id = BA.book_id
+JOIN AUTHOR A ON BA.author_id = A.author_id
+JOIN PUBLISHER P ON B.publisher_id = P.publisher_id;
+
+
+
+//5 Member_Account_Status
+
+//
+
+
+CREATE VIEW Member_Account_Details AS
+SELECT 
+    M.member_id,
+    M.first_name || ' ' || M.last_name AS member_name,
+    M.city,
+    M.mobile_no,
+    M.email_id,
+    M.date_of_birth
+FROM 
+    MEMBER M;
+
+    
+//6 Overdue_Books
+
+//
+
+
+CREATE VIEW Overdue_Books AS
+SELECT 
+    BI.issue_id,
+    B.book_title,
+    M.first_name || ' ' || M.last_name AS member_name,
+    BI.issue_date,
+    BI.return_date,
+    LS.staff_name AS issued_by_staff  -- Corrected to STAFF_NAME
+FROM 
+    BOOK_ISSUE BI
+JOIN BOOK B ON BI.book_id = B.book_id
+JOIN MEMBER M ON BI.member_id = M.member_id
+JOIN LIB_STAFF LS ON BI.issued_by_id = LS.issued_by_id
+WHERE 
+    BI.return_date < SYSDATE
+    AND BI.issue_status = 'Issued';
+
+
+//7 Staff_Issued_Books
+
+//
+
+
+
+CREATE VIEW Staff_Issued_Books AS
+SELECT 
+    LS.issued_by_id,
+    LS.staff_name AS staff_name,  -- Corrected to STAFF_NAME
+    COUNT(BI.issue_id) AS total_issued_books
+FROM 
+    LIB_STAFF LS
+JOIN BOOK_ISSUE BI ON LS.issued_by_id = BI.issued_by_id
+GROUP BY 
+    LS.issued_by_id, 
+    LS.staff_name;  -- Corrected to STAFF_NAME
+
