@@ -1,0 +1,44 @@
+-- Drop users if they already exist to avoid duplication
+BEGIN
+   EXECUTE IMMEDIATE 'DROP USER admin2 CASCADE';
+EXCEPTION
+   WHEN OTHERS THEN
+      IF SQLCODE != -01918 THEN  -- Error code for "user does not exist"
+         RAISE;
+      END IF;
+END;
+/
+
+BEGIN
+   EXECUTE IMMEDIATE 'DROP USER librarian CASCADE';
+EXCEPTION
+   WHEN OTHERS THEN
+      IF SQLCODE != -01918 THEN
+         RAISE;
+      END IF;
+END;
+/
+
+BEGIN
+   EXECUTE IMMEDIATE 'DROP USER member CASCADE';
+EXCEPTION
+   WHEN OTHERS THEN
+      IF SQLCODE != -01918 THEN
+         RAISE;
+      END IF;
+END;
+/
+
+-- Create Admin User with a unique, complex password
+CREATE USER admin2 IDENTIFIED BY "Admn!Secure2024";
+GRANT CREATE SESSION TO admin;
+GRANT CREATE TABLE, CREATE VIEW, CREATE PROCEDURE, CREATE SEQUENCE, CREATE TRIGGER TO admin2;
+
+-- Create Librarian User with a unique, complex password
+CREATE USER librarian IDENTIFIED BY "Lib!arian2024";
+GRANT CREATE SESSION TO librarian;
+GRANT CREATE TABLE, CREATE VIEW TO librarian;
+
+-- Create Member User with a unique, complex password
+CREATE USER member IDENTIFIED BY "Mbr!123Secure";
+GRANT CREATE SESSION TO member;
