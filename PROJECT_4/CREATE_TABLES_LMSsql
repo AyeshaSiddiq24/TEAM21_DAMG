@@ -1,0 +1,307 @@
+SET SERVEROUTPUT ON;
+
+-- Procedure to Clean Existing Objects
+CREATE OR REPLACE PROCEDURE clean_objects(obj_name VARCHAR, obj_type_name VARCHAR)
+IS
+    obj_cnt NUMBER := 0;
+BEGIN
+    IF obj_type_name = 'TABLE' THEN
+        DBMS_OUTPUT.PUT_LINE('Dropping table ' || obj_name);
+        SELECT COUNT(*) INTO obj_cnt FROM user_tables WHERE table_name = UPPER(obj_name);
+        IF obj_cnt > 0 THEN
+            EXECUTE IMMEDIATE 'DROP TABLE ' || obj_name || ' CASCADE CONSTRAINTS';
+            DBMS_OUTPUT.PUT_LINE('Table ' || obj_name || ' dropped successfully');
+        END IF;
+    END IF;
+
+    IF obj_type_name = 'SEQUENCE' THEN
+        DBMS_OUTPUT.PUT_LINE('Dropping sequence ' || obj_name);
+        SELECT COUNT(*) INTO obj_cnt FROM user_sequences WHERE sequence_name = UPPER(obj_name);
+        IF obj_cnt > 0 THEN
+            EXECUTE IMMEDIATE 'DROP SEQUENCE ' || obj_name;
+            DBMS_OUTPUT.PUT_LINE('Sequence ' || obj_name || ' dropped successfully');
+        END IF;
+    END IF;
+END;
+/
+
+-- Clean Existing Objects
+-- Drop Sequences
+EXECUTE clean_objects('CATEGORY_SEQ', 'SEQUENCE');
+EXECUTE clean_objects('PUBLISHER_SEQ', 'SEQUENCE');
+EXECUTE clean_objects('MEMBER_SEQ', 'SEQUENCE');
+EXECUTE clean_objects('BOOK_SEQ', 'SEQUENCE');
+EXECUTE clean_objects('LOCATION_SEQ', 'SEQUENCE');
+EXECUTE clean_objects('FINE_DUE_SEQ', 'SEQUENCE');
+EXECUTE clean_objects('FINE_PAYMENT_SEQ', 'SEQUENCE');
+EXECUTE clean_objects('LIB_STAFF_SEQ', 'SEQUENCE');
+EXECUTE clean_objects('BOOK_ISSUE_SEQ', 'SEQUENCE');
+EXECUTE clean_objects('AUTHOR_SEQ', 'SEQUENCE');
+
+-- Drop Tables
+EXECUTE clean_objects('CATEGORY', 'TABLE');
+EXECUTE clean_objects('PUBLISHER', 'TABLE');
+EXECUTE clean_objects('MEMBER', 'TABLE');
+EXECUTE clean_objects('BOOK', 'TABLE');
+EXECUTE clean_objects('LOCATION', 'TABLE');
+EXECUTE clean_objects('FINE_DUE', 'TABLE');
+EXECUTE clean_objects('FINE_PAYMENT', 'TABLE');
+EXECUTE clean_objects('LIB_STAFF', 'TABLE');
+EXECUTE clean_objects('BOOK_ISSUE', 'TABLE');
+EXECUTE clean_objects('AUTHOR', 'TABLE');
+
+-- Create Sequences
+CREATE SEQUENCE CATEGORY_SEQ START WITH 1 INCREMENT BY 1 NOCACHE NOCYCLE;
+CREATE SEQUENCE PUBLISHER_SEQ START WITH 1 INCREMENT BY 1 NOCACHE NOCYCLE;
+CREATE SEQUENCE MEMBER_SEQ START WITH 1 INCREMENT BY 1 NOCACHE NOCYCLE;
+CREATE SEQUENCE BOOK_SEQ START WITH 1 INCREMENT BY 1 NOCACHE NOCYCLE;
+CREATE SEQUENCE LOCATION_SEQ START WITH 1 INCREMENT BY 1 NOCACHE NOCYCLE;
+CREATE SEQUENCE FINE_DUE_SEQ START WITH 1 INCREMENT BY 1 NOCACHE NOCYCLE;
+CREATE SEQUENCE FINE_PAYMENT_SEQ START WITH 1 INCREMENT BY 1 NOCACHE NOCYCLE;
+CREATE SEQUENCE LIB_STAFF_SEQ START WITH 1 INCREMENT BY 1 NOCACHE NOCYCLE;
+CREATE SEQUENCE BOOK_ISSUE_SEQ START WITH 1 INCREMENT BY 1 NOCACHE NOCYCLE;
+CREATE SEQUENCE AUTHOR_SEQ START WITH 1 INCREMENT BY 1 NOCACHE NOCYCLE;
+
+-- Create Tables
+
+-- CATEGORY Table
+CREATE TABLE CATEGORY (
+    Category_id NUMBER(8) DEFAULT CATEGORY_SEQ.NEXTVAL PRIMARY KEY,
+    Category_name VARCHAR2(50) NOT NULL
+);
+
+-- PUBLISHER Table
+CREATE TABLE PUBLISHER (
+    Publisher_id NUMBER(8) DEFAULT PUBLISHER_SEQ.NEXTVAL PRIMARY KEY,
+    Publisher_name VARCHAR2(50) NOT NULL,
+    Publication_language VARCHAR2(50),
+    Publication_type VARCHAR2(50)
+);
+
+-- MEMBER Table
+CREATE TABLE MEMBER (
+    Member_id NUMBER(8) DEFAULT MEMBER_SEQ.NEXTVAL PRIMARY KEY,
+    First_name VARCHAR2(50) NOT NULL,
+    Last_name VARCHAR2(50) NOT NULL,
+    Email VARCHAR2(100) NOT NULL UNIQUE,
+    Mobile_no VARCHAR2(15) NOT NULL,
+    City VARCHAR2(50) NOT NULL,
+    Membership_start_date DATE NOT NULL,
+    Membership_end_date DATE NOT NULL,
+    Active_status VARCHAR2(10) DEFAULT 'Active'
+);
+
+-- BOOK Table
+CREATE TABLE BOOK (
+    Book_id NUMBER(8) DEFAULT BOOK_SEQ.NEXTVAL PRIMARY KEY,
+    Book_title VARCHAR2(100) NOT NULL,
+    Category_id NUMBER(8),
+    Publisher_id NUMBER(8),
+    Copies_total NUMBER(5) NOT NULL,
+    Copies_available NUMBER(5) NOT NULL,
+    FOREIGN KEY (Category_id) REFERENCES CATEGORY(Category_id) ON DELETE CASCADE,
+    FOREIGN KEY (Publisher_id) REFERENCES PUBLISHER(Publisher_id) ON DELETE CASCADE
+);
+
+-- LOCATION Table
+CREATE TABLE LOCATION (
+    Location_id NUMBER(8) DEFAULT LOCATION_SEQ.NEXTVAL PRIMARY KEY,
+    Shelf_no VARCHAR2(50),
+    Shelf_name VARCHAR2(50),
+    Book_id NUMBER(8),
+    FOREIGN KEY (Book_id) REFERENCES BOOK(Book_id)
+);
+
+-- FINE_DUE Table
+CREATE TABLE FINE_DUE (
+    Fine_id NUMBER(8) DEFAULT FINE_DUE_SEQ.NEXTVAL PRIMARY KEY,
+    Member_id NUMBER(8) NOT NULL,
+    Fine_amount NUMBER(10, 2) NOT NULL,
+    Fine_date DATE NOT NULL,
+    FOREIGN KEY (Member_id) REFERENCES MEMBER(Member_id)
+);
+
+-- FINE_PAYMENT Table
+CREATE TABLE FINE_PAYMENT (
+    Fine_payment_id NUMBER(8) DEFAULT FINE_PAYMENT_SEQ.NEXTVAL PRIMARY KEY,
+    Member_id NUMBER(8),
+    Payment_date DATE,
+    Payment_amount NUMBER(10, 2),
+    Fine_id NUMBER(8),
+    FOREIGN KEY (Member_id) REFERENCES MEMBER(Member_id),
+    FOREIGN KEY (Fine_id) REFERENCES FINE_DUE(Fine_id)
+);
+
+-- LIB_STAFF Table
+CREATE TABLE LIB_STAFF (
+    Staff_id NUMBER(8) DEFAULT LIB_STAFF_SEQ.NEXTVAL PRIMARY KEY,
+    Staff_name VARCHAR2(50),
+    Staff_designation VARCHAR2(50)
+);
+
+-- BOOK_ISSUE Table
+CREATE TABLE BOOK_ISSUE (
+    Issue_id NUMBER(8) DEFAULT BOOK_ISSUE_SEQ.NEXTVAL PRIMARY KEY,
+    Book_id NUMBER(8) NOT NULL,
+    Member_id NUMBER(8) NOT NULL,
+    Issue_date DATE NOT NULL,
+    Return_date DATE,
+    Issue_status VARCHAR2(20) DEFAULT 'Issued',
+    Issued_by NUMBER(8),
+    FOREIGN KEY (Book_id) REFERENCES BOOK(Book_id) ON DELETE CASCADE,
+    FOREIGN KEY (Member_id) REFERENCES MEMBER(Member_id) ON DELETE CASCADE,
+    FOREIGN KEY (Issued_by) REFERENCES LIB_STAFF(Staff_id)
+);
+
+-- AUTHOR Table
+CREATE TABLE AUTHOR (
+    Author_id NUMBER(8) DEFAULT AUTHOR_SEQ.NEXTVAL PRIMARY KEY,
+    First_name VARCHAR2(50) NOT NULL,
+    Last_name VARCHAR2(50) NOT NULL,
+    Book_id NUMBER(8),
+    FOREIGN KEY (Book_id) REFERENCES BOOK(Book_id)
+);
+
+-- Insert Data into Tables
+
+-- CATEGORY
+INSERT INTO CATEGORY (Category_name) VALUES ('Science Fiction');
+INSERT INTO CATEGORY (Category_name) VALUES ('Philosophy');
+INSERT INTO CATEGORY (Category_name) VALUES ('History');
+INSERT INTO CATEGORY (Category_name) VALUES ('Mathematics');
+INSERT INTO CATEGORY (Category_name) VALUES ('Biography');
+INSERT INTO CATEGORY (Category_name) VALUES ('Fantasy');
+INSERT INTO CATEGORY (Category_name) VALUES ('Self-Help');
+
+-- PUBLISHER
+INSERT INTO PUBLISHER (Publisher_name, Publication_language, Publication_type) VALUES ('Penguin Books', 'English', 'Paperback');
+INSERT INTO PUBLISHER (Publisher_name, Publication_language, Publication_type) VALUES ('HarperCollins', 'English', 'Hardcover');
+INSERT INTO PUBLISHER (Publisher_name, Publication_language, Publication_type) VALUES ('Oxford University Press', 'English', 'Paperback');
+INSERT INTO PUBLISHER (Publisher_name, Publication_language, Publication_type) VALUES ('Cambridge University Press', 'English', 'Hardcover');
+INSERT INTO PUBLISHER (Publisher_name, Publication_language, Publication_type) VALUES ('Random House', 'English', 'E-Book');
+INSERT INTO PUBLISHER (Publisher_name, Publication_language, Publication_type) VALUES ('Scholastic', 'English', 'Paperback');
+INSERT INTO PUBLISHER (Publisher_name, Publication_language, Publication_type) VALUES ('Springer', 'German', 'E-Book');
+
+-- MEMBER
+INSERT INTO MEMBER (First_name, Last_name, Email, Mobile_no, City, Membership_start_date, Membership_end_date) 
+VALUES ('John', 'Doe', 'john.doe@example.com', '1234567890', 'New York', SYSDATE, ADD_MONTHS(SYSDATE, 12));
+INSERT INTO MEMBER (First_name, Last_name, Email, Mobile_no, City, Membership_start_date, Membership_end_date) 
+VALUES ('Jane', 'Smith', 'jane.smith@example.com', '0987654321', 'London', SYSDATE, ADD_MONTHS(SYSDATE, 12));
+INSERT INTO MEMBER (First_name, Last_name, Email, Mobile_no, City, Membership_start_date, Membership_end_date) 
+VALUES ('Alice', 'Brown', 'alice.brown@example.com', '1112223334', 'Paris', SYSDATE, ADD_MONTHS(SYSDATE, 12));
+INSERT INTO MEMBER (First_name, Last_name, Email, Mobile_no, City, Membership_start_date, Membership_end_date) 
+VALUES ('Bob', 'Williams', 'bob.williams@example.com', '2223334445', 'Sydney', SYSDATE, ADD_MONTHS(SYSDATE, 12));
+INSERT INTO MEMBER (First_name, Last_name, Email, Mobile_no, City, Membership_start_date, Membership_end_date) 
+VALUES ('Charlie', 'Johnson', 'charlie.johnson@example.com', '3334445556', 'Tokyo', SYSDATE, ADD_MONTHS(SYSDATE, 12));
+INSERT INTO MEMBER (First_name, Last_name, Email, Mobile_no, City, Membership_start_date, Membership_end_date) 
+VALUES ('Diana', 'Taylor', 'diana.taylor@example.com', '4445556667', 'Toronto', SYSDATE, ADD_MONTHS(SYSDATE, 12));
+INSERT INTO MEMBER (First_name, Last_name, Email, Mobile_no, City, Membership_start_date, Membership_end_date) 
+VALUES ('Ethan', 'Clark', 'ethan.clark@example.com', '5556667778', 'Berlin', SYSDATE, ADD_MONTHS(SYSDATE, 12));
+
+
+-- BOOK
+INSERT INTO BOOK (Book_title, Category_id, Publisher_id, Copies_total, Copies_available) 
+VALUES ('The Great Gatsby', 1, 1, 10, 8);
+INSERT INTO BOOK (Book_title, Category_id, Publisher_id, Copies_total, Copies_available) 
+VALUES ('1984', 1, 2, 5, 4);
+INSERT INTO BOOK (Book_title, Category_id, Publisher_id, Copies_total, Copies_available) 
+VALUES ('To Kill a Mockingbird', 3, 3, 8, 6);
+INSERT INTO BOOK (Book_title, Category_id, Publisher_id, Copies_total, Copies_available) 
+VALUES ('Pride and Prejudice', 4, 4, 12, 9);
+INSERT INTO BOOK (Book_title, Category_id, Publisher_id, Copies_total, Copies_available) 
+VALUES ('The Catcher in the Rye', 5, 5, 7, 5);
+INSERT INTO BOOK (Book_title, Category_id, Publisher_id, Copies_total, Copies_available) 
+VALUES ('Moby Dick', 6, 6, 6, 4);
+INSERT INTO BOOK (Book_title, Category_id, Publisher_id, Copies_total, Copies_available) 
+VALUES ('The Hobbit', 6, 7, 10, 7);
+--LOCATION
+INSERT INTO LOCATION (Shelf_no, Shelf_name, Book_id) 
+VALUES ('S1', 'Science Fiction Shelf', 1);
+INSERT INTO LOCATION (Shelf_no, Shelf_name, Book_id) 
+VALUES ('S2', 'Philosophy Shelf', 2);
+INSERT INTO LOCATION (Shelf_no, Shelf_name, Book_id) 
+VALUES ('S3', 'History Shelf', 3);
+INSERT INTO LOCATION (Shelf_no, Shelf_name, Book_id) 
+VALUES ('S4', 'Mathematics Shelf', 4);
+INSERT INTO LOCATION (Shelf_no, Shelf_name, Book_id) 
+VALUES ('S5', 'Biography Shelf', 5);
+INSERT INTO LOCATION (Shelf_no, Shelf_name, Book_id) 
+VALUES ('S6', 'Fantasy Shelf', 6);
+INSERT INTO LOCATION (Shelf_no, Shelf_name, Book_id) 
+VALUES ('S7', 'Classic Literature Shelf', 7);
+--
+INSERT INTO FINE_DUE (Member_id, Fine_amount, Fine_date) 
+VALUES (1, 5.00, SYSDATE - 10);
+INSERT INTO FINE_DUE (Member_id, Fine_amount, Fine_date) 
+VALUES (2, 10.00, SYSDATE - 8);
+INSERT INTO FINE_DUE (Member_id, Fine_amount, Fine_date) 
+VALUES (3, 7.50, SYSDATE - 6);
+INSERT INTO FINE_DUE (Member_id, Fine_amount, Fine_date) 
+VALUES (4, 3.00, SYSDATE - 5);
+INSERT INTO FINE_DUE (Member_id, Fine_amount, Fine_date) 
+VALUES (5, 15.00, SYSDATE - 4);
+INSERT INTO FINE_DUE (Member_id, Fine_amount, Fine_date) 
+VALUES (6, 12.00, SYSDATE - 2);
+INSERT INTO FINE_DUE (Member_id, Fine_amount, Fine_date) 
+VALUES (7, 8.50, SYSDATE - 1);
+--
+INSERT INTO FINE_PAYMENT (Member_id, Payment_date, Payment_amount, Fine_id) 
+VALUES (1, SYSDATE - 9, 5.00, 1);
+INSERT INTO FINE_PAYMENT (Member_id, Payment_date, Payment_amount, Fine_id) 
+VALUES (2, SYSDATE - 7, 10.00, 2);
+INSERT INTO FINE_PAYMENT (Member_id, Payment_date, Payment_amount, Fine_id) 
+VALUES (3, SYSDATE - 5, 7.50, 3);
+INSERT INTO FINE_PAYMENT (Member_id, Payment_date, Payment_amount, Fine_id) 
+VALUES (4, SYSDATE - 4, 3.00, 4);
+INSERT INTO FINE_PAYMENT (Member_id, Payment_date, Payment_amount, Fine_id) 
+VALUES (5, SYSDATE - 3, 15.00, 5);
+INSERT INTO FINE_PAYMENT (Member_id, Payment_date, Payment_amount, Fine_id) 
+VALUES (6, SYSDATE - 1, 12.00, 6);
+INSERT INTO FINE_PAYMENT (Member_id, Payment_date, Payment_amount, Fine_id) 
+VALUES (7, SYSDATE, 8.50, 7);
+--
+INSERT INTO LIB_STAFF (Staff_name, Staff_designation) 
+VALUES ('Emma Wilson', 'Senior Librarian');
+INSERT INTO LIB_STAFF (Staff_name, Staff_designation) 
+VALUES ('James Smith', 'Assistant Librarian');
+INSERT INTO LIB_STAFF (Staff_name, Staff_designation) 
+VALUES ('Olivia Johnson', 'Cataloging Librarian');
+INSERT INTO LIB_STAFF (Staff_name, Staff_designation) 
+VALUES ('Liam Brown', 'Library Assistant');
+INSERT INTO LIB_STAFF (Staff_name, Staff_designation) 
+VALUES ('Sophia Davis', 'Chief Librarian');
+INSERT INTO LIB_STAFF (Staff_name, Staff_designation) 
+VALUES ('William Evans', 'Reference Librarian');
+INSERT INTO LIB_STAFF (Staff_name, Staff_designation) 
+VALUES ('Charlotte Moore', 'Acquisitions Librarian');
+--
+INSERT INTO BOOK_ISSUE (Book_id, Member_id, Issue_date, Return_date, Issue_status, Issued_by) 
+VALUES (1, 1, SYSDATE - 15, SYSDATE - 10, 'Returned', 1);
+INSERT INTO BOOK_ISSUE (Book_id, Member_id, Issue_date, Return_date, Issue_status, Issued_by) 
+VALUES (2, 2, SYSDATE - 12, NULL, 'Issued', 2);
+INSERT INTO BOOK_ISSUE (Book_id, Member_id, Issue_date, Return_date, Issue_status, Issued_by) 
+VALUES (3, 3, SYSDATE - 11, SYSDATE - 6, 'Returned', 3);
+INSERT INTO BOOK_ISSUE (Book_id, Member_id, Issue_date, Return_date, Issue_status, Issued_by) 
+VALUES (4, 4, SYSDATE - 14, NULL, 'Issued', 4);
+INSERT INTO BOOK_ISSUE (Book_id, Member_id, Issue_date, Return_date, Issue_status, Issued_by) 
+VALUES (5, 5, SYSDATE - 13, SYSDATE - 8, 'Returned', 5);
+INSERT INTO BOOK_ISSUE (Book_id, Member_id, Issue_date, Return_date, Issue_status, Issued_by) 
+VALUES (6, 6, SYSDATE - 16, SYSDATE - 9, 'Returned', 6);
+INSERT INTO BOOK_ISSUE (Book_id, Member_id, Issue_date, Return_date, Issue_status, Issued_by) 
+VALUES (7, 7, SYSDATE - 10, NULL, 'Issued', 7);
+
+--
+INSERT INTO AUTHOR (First_name, Last_name, Book_id) 
+VALUES ('F. Scott', 'Fitzgerald', 1);
+INSERT INTO AUTHOR (First_name, Last_name, Book_id) 
+VALUES ('George', 'Orwell', 2);
+INSERT INTO AUTHOR (First_name, Last_name, Book_id) 
+VALUES ('Harper', 'Lee', 3);
+INSERT INTO AUTHOR (First_name, Last_name, Book_id) 
+VALUES ('Jane', 'Austen', 4);
+INSERT INTO AUTHOR (First_name, Last_name, Book_id) 
+VALUES ('J.D.', 'Salinger', 5);
+INSERT INTO AUTHOR (First_name, Last_name, Book_id) 
+VALUES ('Herman', 'Melville', 6);
+INSERT INTO AUTHOR (First_name, Last_name, Book_id) 
+VALUES ('J.R.R.', 'Tolkien', 7);
