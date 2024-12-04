@@ -1,0 +1,95 @@
+//1.Current_Book_Inventory View
+
+CREATE OR REPLACE VIEW Current_Book_Inventory AS
+SELECT 
+    b.Book_id, 
+    b.Book_title, 
+    b.Copies_total, 
+    b.Copies_available, 
+    c.Category_name, 
+    p.Publisher_name
+FROM 
+    BOOK b
+JOIN 
+    CATEGORY c ON b.Category_id = c.Category_id
+JOIN 
+    PUBLISHER p ON b.Publisher_id = p.Publisher_id;
+
+//2.Member_Borrowing_History View
+
+CREATE OR REPLACE VIEW Member_Borrowing_History AS
+SELECT 
+    bi.Member_id, 
+    m.First_name, 
+    m.Last_name, 
+    bi.Book_id, 
+    b.Book_title, 
+    bi.Issue_date, 
+    bi.Return_date, 
+    bi.Issue_status
+FROM 
+    BOOK_ISSUE bi
+JOIN 
+    MEMBER m ON bi.Member_id = m.Member_id
+JOIN 
+    BOOK b ON bi.Book_id = b.Book_id;
+
+//3.Staff_Performance View
+CREATE OR REPLACE VIEW Staff_Performance AS
+SELECT 
+    ls.Staff_id, 
+    ls.Staff_name, 
+    COUNT(bi.Issue_id) AS Books_Issued
+FROM 
+    LIB_STAFF ls
+LEFT JOIN 
+    BOOK_ISSUE bi ON ls.Staff_id = bi.Issued_by
+GROUP BY 
+    ls.Staff_id, 
+    ls.Staff_name;
+
+
+//4.Overdue_Books View
+CREATE OR REPLACE VIEW Overdue_Books AS
+SELECT 
+    bi.Issue_id, 
+    bi.Book_id, 
+    b.Book_title, 
+    bi.Member_id, 
+    m.First_name, 
+    m.Last_name, 
+    bi.Return_date, 
+    CASE 
+        WHEN bi.Return_date < SYSDATE THEN 'Overdue' 
+        ELSE 'On Time' 
+    END AS Status
+FROM 
+    BOOK_ISSUE bi
+JOIN 
+    BOOK b ON bi.Book_id = b.Book_id
+JOIN 
+    MEMBER m ON bi.Member_id = m.Member_id;
+
+//5.Fine_Collection_Status View
+CREATE OR REPLACE VIEW Fine_Collection_Status AS
+SELECT 
+    f.Fine_id, 
+    f.Member_id, 
+    m.First_name, 
+    m.Last_name, 
+    f.Fine_amount, 
+    COALESCE(SUM(fp.Payment_amount), 0) AS Amount_Paid, 
+    f.Fine_amount - COALESCE(SUM(fp.Payment_amount), 0) AS Outstanding_Amount
+FROM 
+    FINE_DUE f
+LEFT JOIN 
+    FINE_PAYMENT fp ON f.Fine_id = fp.Fine_id
+JOIN 
+    MEMBER m ON f.Member_id = m.Member_id
+GROUP BY 
+    f.Fine_id, 
+    f.Member_id, 
+    m.First_name, 
+    m.Last_name, 
+    f.Fine_amount;
+
