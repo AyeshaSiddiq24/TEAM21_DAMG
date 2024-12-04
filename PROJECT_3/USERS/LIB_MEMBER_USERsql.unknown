@@ -1,0 +1,36 @@
+DECLARE
+    user_exists NUMBER;
+BEGIN
+    -- Check if the user exists
+    SELECT COUNT(*)
+    INTO user_exists
+    FROM all_users
+    WHERE username = 'LIB_MEMBER_USER';
+
+    -- If the user exists, drop it
+    IF user_exists > 0 THEN
+        EXECUTE IMMEDIATE 'DROP USER LIB_MEMBER_USER CASCADE';
+        DBMS_OUTPUT.PUT_LINE('Existing user LIB_MEMBER_USER dropped successfully.');
+    END IF;
+
+    -- Create the LIB_MEMBER_USER
+    EXECUTE IMMEDIATE 'CREATE USER LIB_MEMBER_USER IDENTIFIED BY "#Member2024@Library"';
+
+    -- Grant basic system privileges
+    EXECUTE IMMEDIATE 'GRANT CREATE SESSION TO LIB_MEMBER_USER';
+
+    -- Grant SELECT privileges to allow members to view data
+    EXECUTE IMMEDIATE 'GRANT SELECT ON BOOK TO LIB_MEMBER_USER';
+    EXECUTE IMMEDIATE 'GRANT SELECT ON CATEGORY TO LIB_MEMBER_USER';
+    EXECUTE IMMEDIATE 'GRANT SELECT ON PUBLISHER TO LIB_MEMBER_USER';
+    EXECUTE IMMEDIATE 'GRANT SELECT ON FINE_DUE TO LIB_MEMBER_USER';
+    EXECUTE IMMEDIATE 'GRANT SELECT ON FINE_PAYMENT TO LIB_MEMBER_USER';
+    EXECUTE IMMEDIATE 'GRANT SELECT ON BOOK_ISSUE TO LIB_MEMBER_USER';
+
+    DBMS_OUTPUT.PUT_LINE('User LIB_MEMBER_USER created and granted the specified privileges successfully.');
+
+EXCEPTION
+    WHEN OTHERS THEN
+        DBMS_OUTPUT.PUT_LINE('An error occurred: ' || SQLERRM);
+END;
+/

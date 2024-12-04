@@ -1,0 +1,46 @@
+SET SERVEROUTPUT ON;
+
+DECLARE
+    user_exists NUMBER;
+BEGIN
+    -- Check if the user exists
+    SELECT COUNT(*)
+    INTO user_exists
+    FROM all_users
+    WHERE username = 'LIB_ADMIN';
+
+    -- If the user exists, drop it
+    IF user_exists > 0 THEN
+        EXECUTE IMMEDIATE 'DROP USER LIB_ADMIN CASCADE';
+        DBMS_OUTPUT.PUT_LINE('Existing user LIB_ADMIN dropped successfully.');
+    END IF;
+
+    -- Create the LIB_ADMIN user with a strong password containing special characters
+    EXECUTE IMMEDIATE 'CREATE USER LIB_ADMIN IDENTIFIED BY "#LibraryAdmin123"';
+
+    -- Grant basic system privileges
+    EXECUTE IMMEDIATE 'GRANT CREATE SESSION TO LIB_ADMIN WITH ADMIN OPTION';
+
+    -- Grant object creation privileges
+    EXECUTE IMMEDIATE 'GRANT CREATE VIEW, CREATE TABLE, CREATE SEQUENCE, CREATE SYNONYM TO LIB_ADMIN';
+
+    -- Grant user management privileges
+    EXECUTE IMMEDIATE 'GRANT CREATE USER, ALTER USER, DROP USER TO LIB_ADMIN';
+
+    -- Grant unlimited storage quota on the USERS tablespace
+    EXECUTE IMMEDIATE 'ALTER USER LIB_ADMIN QUOTA UNLIMITED ON USERS';
+
+    -- Grant execute privileges on dbms_session
+    EXECUTE IMMEDIATE 'GRANT EXECUTE ON DBMS_SESSION TO LIB_ADMIN';
+
+    -- Grant privileges for context management
+    EXECUTE IMMEDIATE 'GRANT CREATE ANY CONTEXT TO LIB_ADMIN';
+    EXECUTE IMMEDIATE 'GRANT CREATE PROCEDURE TO LIB_ADMIN';
+
+    -- Commit changes
+    DBMS_OUTPUT.PUT_LINE('User LIB_ADMIN created and granted the specified privileges successfully.');
+
+EXCEPTION
+    WHEN OTHERS THEN
+        DBMS_OUTPUT.PUT_LINE('An error occurred: ' || SQLERRM);
+END;
