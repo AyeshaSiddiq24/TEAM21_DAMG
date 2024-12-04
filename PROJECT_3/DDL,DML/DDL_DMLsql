@@ -1,0 +1,473 @@
+SET SERVEROUTPUT ON;
+
+-- Category Table
+DECLARE
+    table_exists NUMBER;
+BEGIN
+    -- Check if the table exists
+    SELECT COUNT(*)
+    INTO table_exists
+    FROM user_tables
+    WHERE table_name = 'CATEGORY';
+    
+    -- If the table exists, drop it
+    IF table_exists > 0 THEN
+        EXECUTE IMMEDIATE 'DROP TABLE CATEGORY CASCADE CONSTRAINTS';
+        DBMS_OUTPUT.PUT_LINE('Table CATEGORY dropped successfully.');
+    END IF;
+
+    -- Create the CATEGORY table
+    EXECUTE IMMEDIATE 'CREATE TABLE Category (
+        Category_id VARCHAR2(50) PRIMARY KEY,
+        Category_name VARCHAR2(50) NOT NULL
+    )';
+    DBMS_OUTPUT.PUT_LINE('Table CATEGORY created successfully.');
+
+    -- Insert data
+    EXECUTE IMMEDIATE 'INSERT INTO Category VALUES (''CAT001'', ''Science Fiction'')';
+    EXECUTE IMMEDIATE 'INSERT INTO Category VALUES (''CAT002'', ''Philosophy'')';
+    EXECUTE IMMEDIATE 'INSERT INTO Category VALUES (''CAT003'', ''History'')';
+    EXECUTE IMMEDIATE 'INSERT INTO Category VALUES (''CAT004'', ''Mathematics'')';
+    EXECUTE IMMEDIATE 'INSERT INTO Category VALUES (''CAT005'', ''Biography'')';
+    EXECUTE IMMEDIATE 'INSERT INTO Category VALUES (''CAT006'', ''Fantasy'')';
+    EXECUTE IMMEDIATE 'INSERT INTO Category VALUES (''CAT007'', ''Self-Help'')';
+    EXECUTE IMMEDIATE 'INSERT INTO Category VALUES (''CAT008'', ''Computer Science'')';
+    
+    
+
+    DBMS_OUTPUT.PUT_LINE('Data inserted into CATEGORY successfully.');
+    
+    -- Commit the transaction
+    COMMIT;
+    DBMS_OUTPUT.PUT_LINE('Transaction committed for CATEGORY.');
+END;
+/
+
+-- Publisher Table
+DECLARE
+    table_exists NUMBER;
+BEGIN
+    -- Check if the table exists
+    SELECT COUNT(*)
+    INTO table_exists
+    FROM user_tables
+    WHERE table_name = 'PUBLISHER';
+    
+    -- If the table exists, drop it
+    IF table_exists > 0 THEN
+        EXECUTE IMMEDIATE 'DROP TABLE PUBLISHER CASCADE CONSTRAINTS';
+        DBMS_OUTPUT.PUT_LINE('Table PUBLISHER dropped successfully.');
+    END IF;
+
+    -- Create the PUBLISHER table
+    EXECUTE IMMEDIATE 'CREATE TABLE Publisher (
+        Publisher_id VARCHAR2(50) PRIMARY KEY,
+        Publisher_name VARCHAR2(50) NOT NULL,
+        Publication_language VARCHAR2(50),
+        Publication_type VARCHAR2(50)
+    )';
+    DBMS_OUTPUT.PUT_LINE('Table PUBLISHER created successfully.');
+
+    -- Insert data
+    EXECUTE IMMEDIATE 'INSERT INTO Publisher VALUES (''PUB001'', ''Penguin Books'', ''English'', ''Paperback'')';
+    EXECUTE IMMEDIATE 'INSERT INTO Publisher VALUES (''PUB002'', ''HarperCollins'', ''English'', ''Hardcover'')';
+    EXECUTE IMMEDIATE 'INSERT INTO Publisher VALUES (''PUB003'', ''Oxford University Press'', ''English'', ''Paperback'')';
+    EXECUTE IMMEDIATE 'INSERT INTO Publisher VALUES (''PUB004'', ''Cambridge University Press'', ''English'', ''Hardcover'')';
+    EXECUTE IMMEDIATE 'INSERT INTO Publisher VALUES (''PUB005'', ''Random House'', ''English'', ''E-Book'')';
+    EXECUTE IMMEDIATE 'INSERT INTO Publisher VALUES (''PUB006'', ''Scholastic'', ''English'', ''Paperback'')';
+    EXECUTE IMMEDIATE 'INSERT INTO Publisher VALUES (''PUB007'', ''Hachette Livre'', ''French'', ''Hardcover'')';
+    EXECUTE IMMEDIATE 'INSERT INTO Publisher VALUES (''PUB008'', ''Springer'', ''German'', ''E-Book'')';
+    EXECUTE IMMEDIATE 'INSERT INTO Publisher VALUES (''PUB009'', ''Bloomsbury Publishing'', ''English'', ''Paperback'')';
+    EXECUTE IMMEDIATE 'INSERT INTO Publisher VALUES (''PUB010'', ''Wiley'', ''English'', ''Hardcover'')';
+
+
+    DBMS_OUTPUT.PUT_LINE('Data inserted into PUBLISHER successfully.');
+    
+    -- Commit the transaction
+    COMMIT;
+    DBMS_OUTPUT.PUT_LINE('Transaction committed for PUBLISHER.');
+END;
+/
+
+-- Member Table
+SET SERVEROUTPUT ON;
+
+DECLARE
+    table_exists NUMBER;
+BEGIN
+    -- Check if the table exists
+    SELECT COUNT(*)
+    INTO table_exists
+    FROM user_tables
+    WHERE table_name = 'MEMBER';
+    
+    -- If the table exists, drop it
+    IF table_exists > 0 THEN
+        EXECUTE IMMEDIATE 'DROP TABLE MEMBER CASCADE CONSTRAINTS';
+        DBMS_OUTPUT.PUT_LINE('Table MEMBER dropped successfully.');
+    END IF;
+
+    -- Create the MEMBER table
+    EXECUTE IMMEDIATE 'CREATE TABLE Member (
+        Member_id VARCHAR2(50) PRIMARY KEY,
+        First_name VARCHAR2(50) NOT NULL,
+        Last_name VARCHAR2(50) NOT NULL,
+        City VARCHAR2(50) NOT NULL,
+        Mobile_no VARCHAR2(15) NOT NULL,
+        Email_id VARCHAR2(100) UNIQUE NOT NULL,
+        Date_of_birth DATE NOT NULL,
+        Active_status_id VARCHAR2(50) NOT NULL,
+        Membership_start_date DATE NOT NULL,
+        Membership_end_date DATE NOT NULL
+    )';
+    DBMS_OUTPUT.PUT_LINE('Table MEMBER created successfully.');
+
+    -- Insert data
+    EXECUTE IMMEDIATE 'INSERT INTO Member VALUES (''MEM001'', ''John'', ''Doe'', ''CityA'', ''1234567890'', ''john@example.com'', TO_DATE(''1990-01-01'', ''YYYY-MM-DD''), ''ACT001'', TO_DATE(''2023-01-01'', ''YYYY-MM-DD''), TO_DATE(''2023-12-31'', ''YYYY-MM-DD''))';
+    EXECUTE IMMEDIATE 'INSERT INTO Member VALUES (''MEM002'', ''Jane'', ''Doe'', ''CityB'', ''0987654321'', ''jane@example.com'', TO_DATE(''1992-02-02'', ''YYYY-MM-DD''), ''ACT002'', TO_DATE(''2023-02-01'', ''YYYY-MM-DD''), TO_DATE(''2023-11-30'', ''YYYY-MM-DD''))';
+    EXECUTE IMMEDIATE 'INSERT INTO Member VALUES (''MEM003'', ''Alice'', ''Smith'', ''CityC'', ''1112223333'', ''alice.smith@example.com'', TO_DATE(''1985-05-15'', ''YYYY-MM-DD''), ''ACT003'', TO_DATE(''2023-03-01'', ''YYYY-MM-DD''), TO_DATE(''2023-09-30'', ''YYYY-MM-DD''))';
+    EXECUTE IMMEDIATE 'INSERT INTO Member VALUES (''MEM004'', ''Bob'', ''Johnson'', ''CityD'', ''4445556666'', ''bob.johnson@example.com'', TO_DATE(''1988-08-25'', ''YYYY-MM-DD''), ''ACT004'', TO_DATE(''2023-04-01'', ''YYYY-MM-DD''), TO_DATE(''2023-12-31'', ''YYYY-MM-DD''))';
+    EXECUTE IMMEDIATE 'INSERT INTO Member VALUES (''MEM005'', ''Charlie'', ''Brown'', ''CityE'', ''7778889999'', ''charlie.brown@example.com'', TO_DATE(''1990-03-10'', ''YYYY-MM-DD''), ''ACT005'', TO_DATE(''2023-05-01'', ''YYYY-MM-DD''), TO_DATE(''2023-12-31'', ''YYYY-MM-DD''))';
+    EXECUTE IMMEDIATE 'INSERT INTO Member VALUES (''MEM006'', ''Diana'', ''Taylor'', ''CityF'', ''9998887776'', ''diana.taylor@example.com'', TO_DATE(''1992-09-18'', ''YYYY-MM-DD''), ''ACT006'', TO_DATE(''2023-06-01'', ''YYYY-MM-DD''), TO_DATE(''2023-12-31'', ''YYYY-MM-DD''))';
+    EXECUTE IMMEDIATE 'INSERT INTO Member VALUES (''MEM007'', ''Edward'', ''Wilson'', ''CityG'', ''6665554443'', ''edward.wilson@example.com'', TO_DATE(''1995-01-12'', ''YYYY-MM-DD''), ''ACT007'', TO_DATE(''2023-07-01'', ''YYYY-MM-DD''), TO_DATE(''2023-12-31'', ''YYYY-MM-DD''))';
+    EXECUTE IMMEDIATE 'INSERT INTO Member VALUES (''MEM008'', ''Fiona'', ''Anderson'', ''CityH'', ''3332221110'', ''fiona.anderson@example.com'', TO_DATE(''1998-11-05'', ''YYYY-MM-DD''), ''ACT008'', TO_DATE(''2023-08-01'', ''YYYY-MM-DD''), TO_DATE(''2023-12-31'', ''YYYY-MM-DD''))';
+    EXECUTE IMMEDIATE 'INSERT INTO Member VALUES (''MEM009'', ''George'', ''Lee'', ''CityI'', ''1231231234'', ''george.lee@example.com'', TO_DATE(''1982-07-21'', ''YYYY-MM-DD''), ''ACT009'', TO_DATE(''2023-09-01'', ''YYYY-MM-DD''), TO_DATE(''2023-12-31'', ''YYYY-MM-DD''))';
+    EXECUTE IMMEDIATE 'INSERT INTO Member VALUES (''MEM010'', ''Hannah'', ''Clark'', ''CityJ'', ''9876543210'', ''hannah.clark@example.com'', TO_DATE(''1997-12-31'', ''YYYY-MM-DD''), ''ACT010'', TO_DATE(''2023-10-01'', ''YYYY-MM-DD''), TO_DATE(''2023-12-31'', ''YYYY-MM-DD''))';
+
+    DBMS_OUTPUT.PUT_LINE('Data inserted into MEMBER successfully.');
+    
+    -- Commit the transaction
+    COMMIT;
+    DBMS_OUTPUT.PUT_LINE('Transaction committed for MEMBER.');
+END;
+/
+
+
+-- Book Table
+DECLARE
+    table_exists NUMBER;
+BEGIN
+    -- Check if the table exists
+    SELECT COUNT(*)
+    INTO table_exists
+    FROM user_tables
+    WHERE table_name = 'BOOK';
+    
+    -- If the table exists, drop it
+    IF table_exists > 0 THEN
+        EXECUTE IMMEDIATE 'DROP TABLE BOOK CASCADE CONSTRAINTS';
+        DBMS_OUTPUT.PUT_LINE('Table BOOK dropped successfully.');
+    END IF;
+
+    -- Create the BOOK table
+    EXECUTE IMMEDIATE 'CREATE TABLE Book (
+        Book_id VARCHAR2(50) PRIMARY KEY,
+        Book_title VARCHAR2(50) NOT NULL,
+        Category_id VARCHAR2(50),
+        Publisher_id VARCHAR2(50),
+        Publication_year VARCHAR2(50),
+        Book_edition VARCHAR2(50),
+        Copies_total VARCHAR2(50),
+        Copies_available VARCHAR2(50),
+        FOREIGN KEY (Category_id) REFERENCES Category(Category_id),
+        FOREIGN KEY (Publisher_id) REFERENCES Publisher(Publisher_id)
+    )';
+    DBMS_OUTPUT.PUT_LINE('Table BOOK created successfully.');
+
+    -- Insert data
+    EXECUTE IMMEDIATE 'INSERT INTO Book VALUES (''BOOK001'', ''The Great Gatsby'', ''CAT001'', ''PUB001'', ''1925'', ''1st'', ''5'', ''3'')';
+    EXECUTE IMMEDIATE 'INSERT INTO Book VALUES (''BOOK002'', ''1984'', ''CAT001'', ''PUB002'', ''1949'', ''1st'', ''10'', ''8'')';
+    EXECUTE IMMEDIATE 'INSERT INTO Book VALUES (''BOOK003'', ''To Kill a Mockingbird'', ''CAT003'', ''PUB003'', ''1960'', ''1st'', ''12'', ''10'')';
+    EXECUTE IMMEDIATE 'INSERT INTO Book VALUES (''BOOK004'', ''Pride and Prejudice'', ''CAT002'', ''PUB004'', ''1813'', ''2nd'', ''15'', ''12'')';
+    EXECUTE IMMEDIATE 'INSERT INTO Book VALUES (''BOOK005'', ''The Catcher in the Rye'', ''CAT007'', ''PUB005'', ''1951'', ''1st'', ''8'', ''5'')';
+    
+    DBMS_OUTPUT.PUT_LINE('Data inserted into BOOK successfully.');
+    
+    -- Commit the transaction
+    COMMIT;
+    DBMS_OUTPUT.PUT_LINE('Transaction committed for BOOK.');
+END;
+/
+
+
+-- Location Table
+DECLARE
+    table_exists NUMBER;
+BEGIN
+    -- Check if the table exists
+    SELECT COUNT(*)
+    INTO table_exists
+    FROM user_tables
+    WHERE table_name = 'LOCATION';
+    
+    -- If the table exists, drop it
+    IF table_exists > 0 THEN
+        EXECUTE IMMEDIATE 'DROP TABLE LOCATION CASCADE CONSTRAINTS';
+        DBMS_OUTPUT.PUT_LINE('Table LOCATION dropped successfully.');
+    END IF;
+
+    -- Create the LOCATION table with a foreign key to BOOK
+    EXECUTE IMMEDIATE 'CREATE TABLE Location (
+        Location_id VARCHAR2(50) PRIMARY KEY,
+        Shelf_no VARCHAR2(50),
+        Shelf_name VARCHAR2(50),
+        BOOK_book_id VARCHAR2(50), -- Foreign key to Book table
+        CONSTRAINT LOCATION_BOOK_FK FOREIGN KEY (BOOK_book_id) REFERENCES Book(Book_id)
+    )';
+    DBMS_OUTPUT.PUT_LINE('LOCATION table created successfully.');
+
+    -- Insert data
+    EXECUTE IMMEDIATE 'INSERT INTO Location VALUES (''LOC001'', ''S1'', ''Science Fiction Shelf'', ''BOOK001'')';
+    EXECUTE IMMEDIATE 'INSERT INTO Location VALUES (''LOC002'', ''S2'', ''Philosophy Shelf'', ''BOOK002'')';
+    EXECUTE IMMEDIATE 'INSERT INTO Location VALUES (''LOC003'', ''S3'', ''History Shelf'', ''BOOK003'')';
+    EXECUTE IMMEDIATE 'INSERT INTO Location VALUES (''LOC004'', ''S4'', ''Mathematics Shelf'', ''BOOK004'')';
+    EXECUTE IMMEDIATE 'INSERT INTO Location VALUES (''LOC005'', ''S5'', ''Biography Shelf'', ''BOOK005'')';
+    EXECUTE IMMEDIATE 'INSERT INTO Location VALUES (''LOC006'', ''S6'', ''Fantasy Shelf'', NULL)'; -- No book assigned
+
+    DBMS_OUTPUT.PUT_LINE('Data inserted into LOCATION table successfully.');
+    
+    -- Commit the transaction
+    COMMIT;
+    DBMS_OUTPUT.PUT_LINE('Transaction committed for LOCATION.');
+END;
+/
+
+
+-- Fine Due Table
+DECLARE
+    table_exists NUMBER;
+BEGIN
+    -- Check if the table exists
+    SELECT COUNT(*)
+    INTO table_exists
+    FROM user_tables
+    WHERE table_name = 'FINE_DUE';
+    
+    -- If the table exists, drop it
+    IF table_exists > 0 THEN
+        EXECUTE IMMEDIATE 'DROP TABLE FINE_DUE CASCADE CONSTRAINTS';
+        DBMS_OUTPUT.PUT_LINE('Table FINE_DUE dropped successfully.');
+    END IF;
+
+    -- Create the FINE_DUE table
+    EXECUTE IMMEDIATE 'CREATE TABLE Fine_due (
+        Fine_id VARCHAR2(50) PRIMARY KEY,
+        Member_id VARCHAR2(50),
+        Issue_id VARCHAR2(50),
+        Fine_date DATE,
+        Fine_total VARCHAR2(50),
+        FOREIGN KEY (Member_id) REFERENCES Member(Member_id)
+    )';
+    DBMS_OUTPUT.PUT_LINE('Table FINE_DUE created successfully.');
+
+    -- Insert data
+    EXECUTE IMMEDIATE 'INSERT INTO Fine_due VALUES (''FINE001'', ''MEM001'', ''ISSUE001'', TO_DATE(''2024-02-06'', ''YYYY-MM-DD''), ''10'')';
+    EXECUTE IMMEDIATE 'INSERT INTO Fine_due VALUES (''FINE002'', ''MEM002'', ''ISSUE002'', TO_DATE(''2024-01-26'', ''YYYY-MM-DD''), ''5'')';
+    EXECUTE IMMEDIATE 'INSERT INTO Fine_due VALUES (''FINE003'', ''MEM003'', ''ISSUE003'', TO_DATE(''2024-03-01'', ''YYYY-MM-DD''), ''15'')';
+    EXECUTE IMMEDIATE 'INSERT INTO Fine_due VALUES (''FINE004'', ''MEM004'', ''ISSUE004'', TO_DATE(''2024-03-02'', ''YYYY-MM-DD''), ''20'')';
+    EXECUTE IMMEDIATE 'INSERT INTO Fine_due VALUES (''FINE005'', ''MEM005'', ''ISSUE005'', TO_DATE(''2024-03-03'', ''YYYY-MM-DD''), ''8'')';
+    EXECUTE IMMEDIATE 'INSERT INTO Fine_due VALUES (''FINE006'', ''MEM006'', ''ISSUE006'', TO_DATE(''2024-03-04'', ''YYYY-MM-DD''), ''25'')';
+    EXECUTE IMMEDIATE 'INSERT INTO Fine_due VALUES (''FINE007'', ''MEM007'', ''ISSUE007'', TO_DATE(''2024-03-05'', ''YYYY-MM-DD''), ''12'')';
+    EXECUTE IMMEDIATE 'INSERT INTO Fine_due VALUES (''FINE008'', ''MEM008'', ''ISSUE008'', TO_DATE(''2024-03-06'', ''YYYY-MM-DD''), ''18'')';
+    EXECUTE IMMEDIATE 'INSERT INTO Fine_due VALUES (''FINE009'', ''MEM009'', ''ISSUE009'', TO_DATE(''2024-03-07'', ''YYYY-MM-DD''), ''22'')';
+    EXECUTE IMMEDIATE 'INSERT INTO Fine_due VALUES (''FINE010'', ''MEM010'', ''ISSUE010'', TO_DATE(''2024-03-08'', ''YYYY-MM-DD''), ''30'')';
+
+    DBMS_OUTPUT.PUT_LINE('Data inserted into FINE_DUE successfully.');
+    
+    -- Commit the transaction
+    COMMIT;
+    DBMS_OUTPUT.PUT_LINE('Transaction committed for FINE_DUE.');
+END;
+/
+
+-- Fine Payment Table
+DECLARE
+    table_exists NUMBER;
+BEGIN
+    -- Check if the table exists
+    SELECT COUNT(*)
+    INTO table_exists
+    FROM user_tables
+    WHERE table_name = 'FINE_PAYMENT';
+    
+    -- If the table exists, drop it
+    IF table_exists > 0 THEN
+        EXECUTE IMMEDIATE 'DROP TABLE FINE_PAYMENT CASCADE CONSTRAINTS';
+        DBMS_OUTPUT.PUT_LINE('Table FINE_PAYMENT dropped successfully.');
+    END IF;
+
+    -- Create the FINE_PAYMENT table
+    EXECUTE IMMEDIATE 'CREATE TABLE Fine_payment (
+        Fine_payment_id VARCHAR2(50) PRIMARY KEY,
+        Member_id VARCHAR2(50),
+        Payment_date DATE,
+        Payment_amount VARCHAR2(50),
+        Issue_id VARCHAR2(50),
+        FOREIGN KEY (Member_id) REFERENCES Member(Member_id)
+    )';
+    DBMS_OUTPUT.PUT_LINE('Table FINE_PAYMENT created successfully.');
+
+    -- Insert data
+    EXECUTE IMMEDIATE 'INSERT INTO Fine_payment VALUES (''PAY001'', ''MEM001'', TO_DATE(''2024-02-07'', ''YYYY-MM-DD''), ''10'', ''ISSUE001'')';
+    EXECUTE IMMEDIATE 'INSERT INTO Fine_payment VALUES (''PAY002'', ''MEM002'', TO_DATE(''2024-01-27'', ''YYYY-MM-DD''), ''5'', ''ISSUE002'')';
+    EXECUTE IMMEDIATE 'INSERT INTO Fine_payment VALUES (''PAY003'', ''MEM003'', TO_DATE(''2024-03-01'', ''YYYY-MM-DD''), ''15'', ''ISSUE003'')';
+    EXECUTE IMMEDIATE 'INSERT INTO Fine_payment VALUES (''PAY004'', ''MEM004'', TO_DATE(''2024-03-02'', ''YYYY-MM-DD''), ''20'', ''ISSUE004'')';
+    EXECUTE IMMEDIATE 'INSERT INTO Fine_payment VALUES (''PAY005'', ''MEM005'', TO_DATE(''2024-03-03'', ''YYYY-MM-DD''), ''8'', ''ISSUE005'')';
+    EXECUTE IMMEDIATE 'INSERT INTO Fine_payment VALUES (''PAY006'', ''MEM006'', TO_DATE(''2024-03-04'', ''YYYY-MM-DD''), ''25'', ''ISSUE006'')';
+    EXECUTE IMMEDIATE 'INSERT INTO Fine_payment VALUES (''PAY007'', ''MEM007'', TO_DATE(''2024-03-05'', ''YYYY-MM-DD''), ''12'', ''ISSUE007'')';
+    EXECUTE IMMEDIATE 'INSERT INTO Fine_payment VALUES (''PAY008'', ''MEM008'', TO_DATE(''2024-03-06'', ''YYYY-MM-DD''), ''18'', ''ISSUE008'')';
+    EXECUTE IMMEDIATE 'INSERT INTO Fine_payment VALUES (''PAY009'', ''MEM009'', TO_DATE(''2024-03-07'', ''YYYY-MM-DD''), ''22'', ''ISSUE009'')';
+    EXECUTE IMMEDIATE 'INSERT INTO Fine_payment VALUES (''PAY010'', ''MEM010'', TO_DATE(''2024-03-08'', ''YYYY-MM-DD''), ''30'', ''ISSUE010'')';
+
+    DBMS_OUTPUT.PUT_LINE('Data inserted into FINE_PAYMENT successfully.');
+    
+    -- Commit the transaction
+    COMMIT;
+    DBMS_OUTPUT.PUT_LINE('Transaction committed for FINE_PAYMENT.');
+END;
+/
+
+-- Library Staff Table
+DECLARE
+    table_exists NUMBER;
+BEGIN
+    -- Check if the table exists
+    SELECT COUNT(*)
+    INTO table_exists
+    FROM user_tables
+    WHERE table_name = 'LIB_STAFF';
+    
+    -- If the table exists, drop it
+    IF table_exists > 0 THEN
+        EXECUTE IMMEDIATE 'DROP TABLE LIB_STAFF CASCADE CONSTRAINTS';
+        DBMS_OUTPUT.PUT_LINE('Table LIB_STAFF dropped successfully.');
+    END IF;
+
+    -- Create the LIB_STAFF table
+    EXECUTE IMMEDIATE 'CREATE TABLE Lib_staff (
+        Issued_by_id VARCHAR2(50) PRIMARY KEY,
+        Staff_name VARCHAR2(50),
+        Staff_designation VARCHAR2(50)
+    )';
+    DBMS_OUTPUT.PUT_LINE('Table LIB_STAFF created successfully.');
+
+    -- Insert data
+    EXECUTE IMMEDIATE 'INSERT INTO Lib_staff VALUES (''STAFF001'', ''Emma Wilson'', ''Senior Librarian'')';
+    EXECUTE IMMEDIATE 'INSERT INTO Lib_staff VALUES (''STAFF002'', ''James Smith'', ''Assistant Librarian'')';
+    EXECUTE IMMEDIATE 'INSERT INTO Lib_staff VALUES (''STAFF003'', ''Olivia Brown'', ''Junior Librarian'')';
+    EXECUTE IMMEDIATE 'INSERT INTO Lib_staff VALUES (''STAFF004'', ''Liam Johnson'', ''Library Assistant'')';
+    EXECUTE IMMEDIATE 'INSERT INTO Lib_staff VALUES (''STAFF005'', ''Sophia Davis'', ''Senior Librarian'')';
+    EXECUTE IMMEDIATE 'INSERT INTO Lib_staff VALUES (''STAFF006'', ''William Evans'', ''Chief Librarian'')';
+    EXECUTE IMMEDIATE 'INSERT INTO Lib_staff VALUES (''STAFF007'', ''Isabella Martinez'', ''Library Intern'')';
+    EXECUTE IMMEDIATE 'INSERT INTO Lib_staff VALUES (''STAFF008'', ''Ethan Taylor'', ''Reference Librarian'')';
+    EXECUTE IMMEDIATE 'INSERT INTO Lib_staff VALUES (''STAFF009'', ''Charlotte Moore'', ''Cataloging Librarian'')';
+    EXECUTE IMMEDIATE 'INSERT INTO Lib_staff VALUES (''STAFF010'', ''Henry Thompson'', ''Acquisitions Librarian'')';
+
+    DBMS_OUTPUT.PUT_LINE('Data inserted into LIB_STAFF successfully.');
+    
+    -- Commit the transaction
+    COMMIT;
+    DBMS_OUTPUT.PUT_LINE('Transaction committed for LIB_STAFF.');
+END;
+/
+
+-- Book Issue Table
+DECLARE
+    table_exists NUMBER;
+BEGIN
+    -- Check if the table exists
+    SELECT COUNT(*)
+    INTO table_exists
+    FROM user_tables
+    WHERE table_name = 'BOOK_ISSUE';
+
+    -- If the table exists, drop it
+    IF table_exists > 0 THEN
+        EXECUTE IMMEDIATE 'DROP TABLE BOOK_ISSUE CASCADE CONSTRAINTS';
+        DBMS_OUTPUT.PUT_LINE('Table BOOK_ISSUE dropped successfully.');
+    END IF;
+
+    -- Create the BOOK_ISSUE table
+    EXECUTE IMMEDIATE '
+        CREATE TABLE Book_issue (
+            Issue_id VARCHAR2(50) PRIMARY KEY,
+            Book_id VARCHAR2(50),
+            Member_id VARCHAR2(50),
+            Issue_date DATE,
+            Return_date DATE,
+            Issue_status VARCHAR2(50),
+            Issued_by_id VARCHAR2(50),
+            CONSTRAINT FK_Book FOREIGN KEY (Book_id) REFERENCES Book(Book_id),
+            CONSTRAINT FK_Member FOREIGN KEY (Member_id) REFERENCES Member(Member_id),
+            CONSTRAINT FK_Staff FOREIGN KEY (Issued_by_id) REFERENCES Lib_staff(Issued_by_id)
+        )
+    ';
+    DBMS_OUTPUT.PUT_LINE('Table BOOK_ISSUE created successfully.');
+
+    -- Insert data
+    BEGIN
+        EXECUTE IMMEDIATE 'INSERT INTO Book_issue VALUES (''ISSUE001'', ''BOOK001'', ''MEM001'', TO_DATE(''2024-01-05'', ''YYYY-MM-DD''), TO_DATE(''2024-01-20'', ''YYYY-MM-DD''), ''Issued'', ''STAFF001'')';
+        EXECUTE IMMEDIATE 'INSERT INTO Book_issue VALUES (''ISSUE002'', ''BOOK002'', ''MEM002'', TO_DATE(''2024-01-10'', ''YYYY-MM-DD''), TO_DATE(''2024-01-25'', ''YYYY-MM-DD''), ''Returned'', ''STAFF002'')';
+        EXECUTE IMMEDIATE 'INSERT INTO Book_issue VALUES (''ISSUE003'', ''BOOK003'', ''MEM003'', TO_DATE(''2024-01-15'', ''YYYY-MM-DD''), TO_DATE(''2024-01-30'', ''YYYY-MM-DD''), ''Returned'', ''STAFF003'')';
+        EXECUTE IMMEDIATE 'INSERT INTO Book_issue VALUES (''ISSUE004'', ''BOOK004'', ''MEM004'', TO_DATE(''2024-01-20'', ''YYYY-MM-DD''), TO_DATE(''2024-02-05'', ''YYYY-MM-DD''), ''Issued'', ''STAFF004'')';
+        EXECUTE IMMEDIATE 'INSERT INTO Book_issue VALUES (''ISSUE005'', ''BOOK005'', ''MEM005'', TO_DATE(''2024-01-25'', ''YYYY-MM-DD''), TO_DATE(''2024-02-10'', ''YYYY-MM-DD''), ''Returned'', ''STAFF005'')';
+        DBMS_OUTPUT.PUT_LINE('Data inserted into BOOK_ISSUE successfully.');
+    EXCEPTION
+        WHEN OTHERS THEN
+            DBMS_OUTPUT.PUT_LINE('Error inserting data into BOOK_ISSUE: ' || SQLERRM);
+    END;
+
+    -- Commit the transaction
+    COMMIT;
+    DBMS_OUTPUT.PUT_LINE('Transaction committed for BOOK_ISSUE.');
+EXCEPTION
+    WHEN OTHERS THEN
+        DBMS_OUTPUT.PUT_LINE('Error creating BOOK_ISSUE table: ' || SQLERRM);
+END;
+/
+
+
+-- Author Table
+-- Author Table
+DECLARE
+    table_exists NUMBER;
+BEGIN
+    -- Check if the table exists
+    SELECT COUNT(*)
+    INTO table_exists
+    FROM user_tables
+    WHERE table_name = 'AUTHOR';
+    
+    -- If the table exists, drop it
+    IF table_exists > 0 THEN
+        EXECUTE IMMEDIATE 'DROP TABLE AUTHOR CASCADE CONSTRAINTS';
+        DBMS_OUTPUT.PUT_LINE('Table AUTHOR dropped successfully.');
+    END IF;
+
+    -- Create the AUTHOR table
+    EXECUTE IMMEDIATE 'CREATE TABLE Author (
+        Author_id VARCHAR2(50) PRIMARY KEY,
+        First_name VARCHAR2(50) NOT NULL,
+        Last_name VARCHAR2(50) NOT NULL,
+        BOOK_book_id VARCHAR2(50),
+        CONSTRAINT AUTHOR_BOOK_FK FOREIGN KEY (BOOK_book_id) REFERENCES Book(Book_id)
+    )';
+    DBMS_OUTPUT.PUT_LINE('Table AUTHOR created successfully.');
+
+    -- Insert data
+    EXECUTE IMMEDIATE 'INSERT INTO Author VALUES (''AUTH001'', ''F. Scott'', ''Fitzgerald'', ''BOOK001'')';
+    EXECUTE IMMEDIATE 'INSERT INTO Author VALUES (''AUTH002'', ''George'', ''Orwell'', ''BOOK002'')';
+    EXECUTE IMMEDIATE 'INSERT INTO Author VALUES (''AUTH003'', ''Harper'', ''Lee'', ''BOOK003'')';
+    EXECUTE IMMEDIATE 'INSERT INTO Author VALUES (''AUTH004'', ''Jane'', ''Austen'', ''BOOK004'')';
+    EXECUTE IMMEDIATE 'INSERT INTO Author VALUES (''AUTH005'', ''J.D.'', ''Salinger'', ''BOOK005'')';
+
+    DBMS_OUTPUT.PUT_LINE('Data inserted into AUTHOR successfully.');
+    
+    -- Commit the transaction
+    COMMIT;
+    DBMS_OUTPUT.PUT_LINE('Transaction committed for AUTHOR.');
+END;
+/
+SHOW USER;
+
+
