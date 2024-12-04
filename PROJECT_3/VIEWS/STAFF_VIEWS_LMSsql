@@ -1,0 +1,75 @@
+-- View: Staff_Current_Book_Inventory
+CREATE OR REPLACE VIEW Staff_Current_Book_Inventory AS
+SELECT 
+    Book_id, 
+    Book_title, 
+    Copies_total, 
+    Copies_available, 
+    CASE 
+        WHEN Copies_available > 0 THEN 'In Stock' 
+        ELSE 'Out of Stock' 
+    END AS Stock_Status
+FROM Book;
+
+-- View: Staff_Transaction_Performance
+CREATE OR REPLACE VIEW Staff_Transaction_Performance AS
+SELECT 
+    ls.Issued_by_id AS Staff_ID, 
+    ls.Staff_name AS Staff_Name, 
+    COUNT(bi.Issue_id) AS Total_Books_Issued
+FROM Lib_staff ls
+LEFT JOIN Book_issue bi ON ls.Issued_by_id = bi.Issued_by_id
+GROUP BY ls.Issued_by_id, ls.Staff_name;
+
+-- View: Staff_Popular_Books
+CREATE OR REPLACE VIEW Staff_Popular_Books AS
+SELECT 
+    b.Book_id, 
+    b.Book_title, 
+    COUNT(bi.Issue_id) AS Total_Borrows
+FROM Book b
+JOIN Book_issue bi ON b.Book_id = bi.Book_id
+GROUP BY b.Book_id, b.Book_title
+ORDER BY Total_Borrows DESC;
+
+-- View: Staff_Overdue_Book_Issues
+CREATE OR REPLACE VIEW Staff_Overdue_Book_Issues AS
+SELECT 
+    bi.Issue_id, 
+    m.Member_id, 
+    m.First_name || ' ' || m.Last_name AS Member_Name, 
+    b.Book_title, 
+    bi.Issue_date, 
+    bi.Return_date, 
+    CASE 
+        WHEN bi.Return_date < SYSDATE AND bi.Issue_status = 'Issued' THEN 'Overdue'
+        ELSE 'On Time'
+    END AS Status
+FROM Book_issue bi
+JOIN Member m ON bi.Member_id = m.Member_id
+JOIN Book b ON bi.Book_id = b.Book_id;
+
+-- View: Staff_Member_Borrowing_History
+CREATE OR REPLACE VIEW Staff_Member_Borrowing_History AS
+SELECT 
+    m.Member_id, 
+    m.First_name || ' ' || m.Last_name AS Member_Name, 
+    bi.Book_id, 
+    b.Book_title, 
+    bi.Issue_date, 
+    bi.Return_date, 
+    bi.Issue_status
+FROM Member m
+JOIN Book_issue bi ON m.Member_id = bi.Member_id
+JOIN Book b ON bi.Book_id = b.Book_id;
+
+-- View: Staff_Books_At_Location
+CREATE OR REPLACE VIEW Staff_Books_At_Location AS
+SELECT 
+    l.Location_id, 
+    l.Shelf_no, 
+    l.Shelf_name, 
+    b.Book_id, 
+    b.Book_title
+FROM Location l
+LEFT JOIN Book b ON l.BOOK_book_id = b.Book_id;

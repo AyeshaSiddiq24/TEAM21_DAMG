@@ -1,0 +1,99 @@
+SET SERVEROUTPUT ON;
+-- View: Current_Book_Inventory
+CREATE OR REPLACE VIEW Current_Book_Inventory AS
+SELECT b.Book_id, b.Book_title, 
+       b.Copies_total, b.Copies_available,
+       CASE WHEN b.Copies_available > 0 THEN 'In Stock'
+            ELSE 'Out of Stock' END AS Stock_Status
+FROM Book b;
+
+-- View: Total_Fines_By_Member
+CREATE OR REPLACE VIEW Total_Fines_By_Member AS
+SELECT m.Member_id, 
+       m.First_name || ' ' || m.Last_name AS Member_Name,
+       SUM(fd.Fine_total) AS Total_Fines
+FROM Member m
+LEFT JOIN Fine_due fd ON m.Member_id = fd.Member_id
+GROUP BY m.Member_id, m.First_name, m.Last_name;
+
+-- View: Book_Issues_By_Category
+CREATE OR REPLACE VIEW Book_Issues_By_Category AS
+SELECT c.Category_id, 
+       c.Category_name,
+       COUNT(bi.Issue_id) AS Total_Books_Issued
+FROM Category c
+JOIN Book b ON c.Category_id = b.Category_id
+JOIN Book_issue bi ON b.Book_id = bi.Book_id
+GROUP BY c.Category_id, c.Category_name;
+
+-- View: Member_Borrowing_History
+CREATE OR REPLACE VIEW Member_Borrowing_History AS
+SELECT m.Member_id, 
+       m.First_name || ' ' || m.Last_name AS Member_Name,
+       bi.Book_id, b.Book_title,
+       bi.Issue_date, bi.Return_date, bi.Issue_status
+FROM Member m
+JOIN Book_issue bi ON m.Member_id = bi.Member_id
+JOIN Book b ON bi.Book_id = b.Book_id;
+
+-- View: Staff_Book_Issues
+CREATE OR REPLACE VIEW Staff_Book_Issues AS
+SELECT ls.Issued_by_id, 
+       ls.Staff_name, 
+       COUNT(bi.Issue_id) AS Total_Books_Issued
+FROM Lib_staff ls
+LEFT JOIN Book_issue bi ON ls.Issued_by_id = bi.Issued_by_id
+GROUP BY ls.Issued_by_id, ls.Staff_name;
+
+
+
+-- View: Overdue_Book_Issues
+CREATE OR REPLACE VIEW Overdue_Book_Issues AS
+SELECT bi.Issue_id, 
+       m.First_name || ' ' || m.Last_name AS Member_Name,
+       b.Book_title, 
+       bi.Issue_date, 
+       bi.Return_date, 
+       CASE 
+           WHEN bi.Return_date < SYSDATE AND bi.Issue_status = 'Issued' THEN 'Overdue'
+           ELSE 'On Time'
+       END AS Status
+FROM Book_issue bi
+JOIN Member m ON bi.Member_id = m.Member_id
+JOIN Book b ON bi.Book_id = b.Book_id;
+
+-- View: Fine_Collection_Status
+CREATE OR REPLACE VIEW Fine_Collection_Status AS
+SELECT m.Member_id, 
+       m.First_name || ' ' || m.Last_name AS Member_Name,
+       SUM(fp.Payment_amount) AS Total_Fines_Paid,
+       SUM(fd.Fine_total) - COALESCE(SUM(fp.Payment_amount), 0) AS Total_Fines_Due
+FROM Member m
+LEFT JOIN Fine_due fd ON m.Member_id = fd.Member_id
+LEFT JOIN Fine_payment fp ON m.Member_id = fp.Member_id
+GROUP BY m.Member_id, m.First_name, m.Last_name;
+
+-- View: Books_by_author
+CREATE OR REPLACE VIEW Books_By_Author AS
+SELECT 
+    a.author_id, 
+    a.first_name || ' ' || a.last_name AS author_name, 
+    b.book_id, 
+    b.book_title
+FROM Author a
+JOIN Book b ON a.BOOK_book_id = b.Book_id;
+
+--View: Books_location
+CREATE OR REPLACE VIEW Books_By_Location AS
+SELECT 
+    l.Location_id, 
+    l.Shelf_no, 
+    l.Shelf_name, 
+    b.Book_id, 
+    b.Book_title
+FROM Location l
+LEFT JOIN Book b ON l.BOOK_book_id = b.Book_id;
+
+
+
+

@@ -1,0 +1,83 @@
+--1. Member_Borrowing_History
+CREATE OR REPLACE VIEW LIB_MEMBER_Borrowing_History AS
+SELECT 
+    bi.Member_id, 
+    m.First_name || ' ' || m.Last_name AS Member_Name, 
+    b.Book_id, 
+    b.Book_title, 
+    bi.Issue_date, 
+    bi.Return_date, 
+    bi.Issue_status
+FROM 
+    BOOK_ISSUE bi
+JOIN 
+    MEMBER m ON bi.Member_id = m.Member_id
+JOIN 
+    BOOK b ON bi.Book_id = b.Book_id;
+
+
+--2. Current Book Inventory
+
+CREATE OR REPLACE VIEW LIB_MEMBER_Current_Book_Inventory AS
+SELECT 
+    b.Book_id, 
+    b.Book_title, 
+    c.Category_name, 
+    p.Publisher_name, 
+    b.Copies_total, 
+    b.Copies_available
+FROM 
+    BOOK b
+JOIN 
+    CATEGORY c ON b.Category_id = c.Category_id
+JOIN 
+    PUBLISHER p ON b.Publisher_id = p.Publisher_id;
+    
+--3. Overdue Books for a member
+CREATE OR REPLACE VIEW LIB_MEMBER_Overdue_Books AS
+SELECT 
+    bi.Member_id, 
+    m.First_name || ' ' || m.Last_name AS Member_Name, 
+    b.Book_id, 
+    b.Book_title, 
+    bi.Issue_date, 
+    bi.Return_date, 
+    CASE 
+        WHEN SYSDATE > bi.Return_date THEN 'Overdue' 
+        ELSE 'On Time' 
+    END AS Status
+FROM 
+    BOOK_ISSUE bi
+JOIN 
+    MEMBER m ON bi.Member_id = m.Member_id
+JOIN 
+    BOOK b ON bi.Book_id = b.Book_id
+WHERE 
+    bi.Return_date IS NOT NULL;
+    
+--4.Books by Category
+CREATE OR REPLACE VIEW LIB_MEMBER_Books_By_Category AS
+SELECT 
+    c.Category_name, 
+    b.Book_id, 
+    b.Book_title, 
+    b.Copies_available
+FROM 
+    BOOK b
+JOIN 
+    CATEGORY c ON b.Category_id = c.Category_id;
+
+--5.Location of Books
+CREATE OR REPLACE VIEW LIB_MEMBER_Book_Location AS
+SELECT 
+    b.Book_id, 
+    b.Book_title, 
+    l.Shelf_no, 
+    l.Shelf_name
+FROM 
+    BOOK b
+JOIN 
+    LOCATION l ON b.Book_id = l.BOOK_book_id;
+
+
+
