@@ -1,0 +1,143 @@
+--Procedure 1: Update Book Details
+CREATE OR REPLACE PROCEDURE update_book_details(
+    p_book_id IN NUMBER,
+    p_new_copies_total IN NUMBER,
+    p_new_copies_available IN NUMBER
+)
+AS
+    v_exists NUMBER;
+BEGIN
+    -- Validate if the book exists
+    SELECT COUNT(*)
+    INTO v_exists
+    FROM BOOK
+    WHERE Book_id = p_book_id;
+
+    IF v_exists = 0 THEN
+        RAISE_APPLICATION_ERROR(-20001, 'Book does not exist.');
+    END IF;
+
+    -- Update the book details
+    UPDATE BOOK
+    SET Copies_total = p_new_copies_total,
+        Copies_available = p_new_copies_available
+    WHERE Book_id = p_book_id;
+
+    DBMS_OUTPUT.PUT_LINE('Book with ID ' || p_book_id || ' updated successfully.');
+EXCEPTION
+    WHEN OTHERS THEN
+        DBMS_OUTPUT.PUT_LINE('An error occurred: ' || SQLERRM);
+END;
+/
+
+--Procedure 2: Update Book Issue Status
+
+CREATE OR REPLACE PROCEDURE update_book_issue_status(
+    p_issue_id IN NUMBER,
+    p_new_status IN VARCHAR2
+)
+AS
+    v_exists NUMBER;
+BEGIN
+    -- Validate if the book issue exists
+    SELECT COUNT(*)
+    INTO v_exists
+    FROM BOOK_ISSUE
+    WHERE Issue_id = p_issue_id;
+
+    IF v_exists = 0 THEN
+        RAISE_APPLICATION_ERROR(-20001, 'Book issue record does not exist.');
+    END IF;
+
+    -- Update the book issue status
+    UPDATE BOOK_ISSUE
+    SET Issue_status = p_new_status
+    WHERE Issue_id = p_issue_id;
+
+    DBMS_OUTPUT.PUT_LINE('Book issue with ID ' || p_issue_id || ' updated to status: ' || p_new_status);
+EXCEPTION
+    WHEN OTHERS THEN
+        DBMS_OUTPUT.PUT_LINE('An error occurred: ' || SQLERRM);
+END;
+/
+
+--Procedure 3: Update Member Details
+CREATE OR REPLACE PROCEDURE update_member_details(
+    p_member_id IN NUMBER,
+    p_new_city IN VARCHAR2,
+    p_new_email IN VARCHAR2,
+    p_new_status IN VARCHAR2
+)
+AS
+    v_exists NUMBER;
+BEGIN
+    -- Validate if the member exists
+    SELECT COUNT(*)
+    INTO v_exists
+    FROM MEMBER
+    WHERE Member_id = p_member_id;
+
+    IF v_exists = 0 THEN
+        RAISE_APPLICATION_ERROR(-20001, 'Member does not exist.');
+    END IF;
+
+    -- Update the member details
+    UPDATE MEMBER
+    SET City = p_new_city,
+        Email = p_new_email,
+        Active_status = p_new_status
+    WHERE Member_id = p_member_id;
+
+    DBMS_OUTPUT.PUT_LINE('Member with ID ' || p_member_id || ' updated successfully.');
+EXCEPTION
+    WHEN OTHERS THEN
+        DBMS_OUTPUT.PUT_LINE('An error occurred: ' || SQLERRM);
+END;
+/
+
+--Procedure 4: Update Fine Payment
+CREATE OR REPLACE PROCEDURE update_fine_payment(
+    p_fine_id IN NUMBER,
+    p_payment_amount IN NUMBER
+)
+AS
+    v_exists NUMBER;
+    v_remaining NUMBER;
+BEGIN
+    -- Validate if the fine exists
+    SELECT COUNT(*)
+    INTO v_exists
+    FROM FINE_DUE
+    WHERE Fine_id = p_fine_id;
+
+    IF v_exists = 0 THEN
+        RAISE_APPLICATION_ERROR(-20001, 'Fine record does not exist.');
+    END IF;
+
+    -- Check remaining fine amount
+    SELECT Fine_amount - COALESCE(SUM(Payment_amount), 0)
+    INTO v_remaining
+    FROM FINE_DUE d
+    LEFT JOIN FINE_PAYMENT p ON d.Fine_id = p.Fine_id
+    WHERE d.Fine_id = p_fine_id
+    GROUP BY d.Fine_amount;
+
+    IF v_remaining < p_payment_amount THEN
+        RAISE_APPLICATION_ERROR(-20002, 'Payment exceeds remaining fine amount.');
+    END IF;
+
+    -- Insert payment record
+    INSERT INTO FINE_PAYMENT (Fine_id, Payment_date, Payment_amount, Member_id)
+    SELECT p_fine_id, SYSDATE, p_payment_amount, Member_id
+    FROM FINE_DUE
+    WHERE Fine_id = p_fine_id;
+
+    DBMS_OUTPUT.PUT_LINE('Payment of ' || p_payment_amount || ' recorded for Fine ID: ' || p_fine_id);
+    COMMIT;
+EXCEPTION
+    WHEN OTHERS THEN
+        DBMS_OUTPUT.PUT_LINE('An error occurred: ' || SQLERRM);
+END;
+/
+
+
