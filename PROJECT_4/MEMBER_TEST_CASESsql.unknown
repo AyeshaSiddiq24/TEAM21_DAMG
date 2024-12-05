@@ -1,0 +1,123 @@
+--1. Member Sign-Up
+INSERT INTO MEMBER (First_name, Last_name, Email, Mobile_no, City, Membership_start_date, Membership_end_date) 
+VALUES ('Jacky', 'quin', 'joker.quin12@example.com', '1234567990', 'Hyderabad', SYSDATE, ADD_MONTHS(SYSDATE, 12));
+
+
+--2. Search for Books 
+--I] By Category
+
+SELECT * 
+FROM BOOK b
+JOIN CATEGORY c ON b.Category_id = c.Category_id
+WHERE c.Category_name = 'Fantasy';
+
+
+--II] By Title
+
+SELECT * 
+FROM BOOK 
+WHERE LOWER(Book_title) LIKE '%hobbit%';
+
+
+--III] BY Author
+
+SELECT b.Book_title, a.First_name || ' ' || a.Last_name AS Author
+FROM BOOK b
+JOIN AUTHOR a ON b.Book_id = a.Book_id
+WHERE LOWER(a.Last_name) = 'tolkien';
+
+
+-- IV] BY Publisher
+
+SELECT b.Book_title, p.Publisher_name 
+FROM BOOK b
+JOIN PUBLISHER p ON b.Publisher_id = p.Publisher_id
+WHERE p.Publisher_name = 'Penguin Books';
+
+
+--3. Borrow a Book - A member can borrow a book
+
+SELECT * 
+FROM MEMBER 
+WHERE Email = 'michael.scott@example.com';
+
+UPDATE MEMBER
+SET First_name = 'Michael',
+    Last_name = 'Scott',
+    Mobile_no = '9876543210',
+    City = 'Scranton',
+    Membership_start_date = SYSDATE,
+    Membership_end_date = ADD_MONTHS(SYSDATE, 12),
+    Active_status = 'Active'
+WHERE Email = 'michael.scott@example.com';
+
+
+--I] Check Availability
+SELECT Copies_available 
+FROM BOOK 
+WHERE Book_title = 'The Hobbit';
+
+--II]Insert the Borrow Record - Borrow the book
+INSERT INTO BOOK_ISSUE (Book_id, Member_id, Issue_date, Return_date, Issue_status, Issued_by)
+VALUES (
+    (SELECT Book_id FROM BOOK WHERE Book_title = 'The Hobbit'),
+    (SELECT Member_id FROM MEMBER WHERE Email = 'michael.scott@example.com'),
+    SYSDATE,
+    NULL,
+    'Issued',
+    1
+);
+
+--III]Validate
+UPDATE BOOK
+SET Copies_available = Copies_available - 1
+WHERE Book_id = 7;
+
+--4.Return Book
+COMMIT;
+-- or
+ROLLBACK;
+
+-- Step 1: Update the Borrow Record
+UPDATE BOOK_ISSUE
+SET Return_date = SYSDATE, 
+    Issue_status = 'Returned'
+WHERE Book_id = 7
+  AND Member_id = (SELECT Member_id FROM MEMBER WHERE Email = 'michael.scott@example.com')
+  AND Issue_status = 'Issued';
+
+-- Step 2: Update Book Inventory
+UPDATE BOOK
+SET Copies_available = Copies_available + 1
+WHERE Book_id = 7;
+
+COMMIT;
+-- or
+ROLLBACK;
+
+ALTER SESSION DISABLE PARALLEL DML;
+ALTER SESSION ENABLE PARALLEL DML;
+
+-- Step 3: Validate the Updates
+SELECT * 
+FROM BOOK_ISSUE
+WHERE Book_id = 7
+  AND Member_id = (SELECT Member_id FROM MEMBER WHERE Email = 'michael.scott@example.com');
+
+SELECT Copies_available 
+FROM BOOK 
+WHERE Book_id = 7;
+
+--5.Fine pay if late
+SELECT (SYSDATE - Return_date) AS Overdue_Days, 
+       CASE 
+           WHEN SYSDATE > Return_date THEN (SYSDATE - Return_date) * 2 -- Fine per day = 2
+           ELSE 0
+       END AS Fine_Amount
+FROM BOOK_ISSUE
+WHERE Book_id = 7 
+  AND Member_id = (SELECT Member_id FROM MEMBER WHERE Email = 'michael.scott@example.com');
+
+
+
+
