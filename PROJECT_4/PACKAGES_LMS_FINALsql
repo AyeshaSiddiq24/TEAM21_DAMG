@@ -1,0 +1,209 @@
+SET SERVEROUTPUT ON;
+CREATE OR REPLACE PACKAGE Library_Pkg AS
+    -- Functions
+    FUNCTION Calculate_Total_Fine(f_member_id IN NUMBER) RETURN NUMBER;
+    FUNCTION Calculate_Total_Fine_Paid(f_member_id IN NUMBER) RETURN NUMBER;
+    FUNCTION Calculate_Total_Fine_Revenue RETURN NUMBER;
+    FUNCTION Calculate_Late_Fee(f_issue_id IN NUMBER, f_daily_fee IN NUMBER) RETURN NUMBER;
+    FUNCTION Calculate_Books_Borrowed(f_member_id IN NUMBER) RETURN NUMBER;
+    FUNCTION Calculate_Staff_Books_Issued(f_staff_id IN NUMBER) RETURN NUMBER;
+    FUNCTION Check_Book_Availability(f_book_id IN NUMBER) RETURN VARCHAR2;
+
+    -- Procedures
+    PROCEDURE Update_Book_Details(p_book_id IN NUMBER, p_new_copies_total IN NUMBER, p_new_copies_available IN NUMBER);
+    PROCEDURE Update_Book_Issue_Status(p_issue_id IN NUMBER, p_new_status IN VARCHAR2);
+    PROCEDURE Update_Member_Details(p_member_id IN NUMBER, p_new_city IN VARCHAR2, p_new_email IN VARCHAR2, p_new_status IN VARCHAR2);
+    PROCEDURE Update_Fine_Payment(p_fine_id IN NUMBER, p_payment_amount IN NUMBER);
+END Library_Pkg;
+/
+
+--PACKAGE BODY 
+
+CREATE OR REPLACE PACKAGE BODY Library_Pkg AS
+    -- Function: Calculate Total Fine for a Member
+    FUNCTION Calculate_Total_Fine(f_member_id IN NUMBER) RETURN NUMBER IS
+        total_fine NUMBER;
+    BEGIN
+        SELECT SUM(Fine_amount)
+        INTO total_fine
+        FROM FINE_DUE
+        WHERE Member_id = f_member_id;
+
+        RETURN NVL(total_fine, 0);
+    END;
+
+    -- Function: Calculate Total Fine Paid by a Member
+    FUNCTION Calculate_Total_Fine_Paid(f_member_id IN NUMBER) RETURN NUMBER IS
+        total_fine_paid NUMBER;
+    BEGIN
+        SELECT SUM(Payment_amount)
+        INTO total_fine_paid
+        FROM FINE_PAYMENT
+        WHERE Member_id = f_member_id;
+
+        RETURN NVL(total_fine_paid, 0);
+    END;
+
+    -- Function: Calculate Total Fine Revenue
+    FUNCTION Calculate_Total_Fine_Revenue RETURN NUMBER IS
+        total_revenue NUMBER;
+    BEGIN
+        SELECT SUM(Payment_amount)
+        INTO total_revenue
+        FROM FINE_PAYMENT;
+
+        RETURN NVL(total_revenue, 0);
+    END;
+
+    -- Function: Calculate Late Fee for a Book Issue
+    FUNCTION Calculate_Late_Fee(f_issue_id IN NUMBER, f_daily_fee IN NUMBER) RETURN NUMBER IS
+        late_days NUMBER;
+        late_fee NUMBER;
+    BEGIN
+        SELECT GREATEST(SYSDATE - Return_date, 0)
+        INTO late_days
+        FROM BOOK_ISSUE
+        WHERE Issue_id = f_issue_id;
+
+        late_fee := late_days * f_daily_fee;
+        RETURN late_fee;
+    END;
+
+    -- Function: Calculate Total Books Borrowed by a Member
+    FUNCTION Calculate_Books_Borrowed(f_member_id IN NUMBER) RETURN NUMBER IS
+        total_books NUMBER;
+    BEGIN
+        SELECT COUNT(*)
+        INTO total_books
+        FROM BOOK_ISSUE
+        WHERE Member_id = f_member_id;
+
+        RETURN NVL(total_books, 0);
+    END;
+
+    -- Function: Calculate Total Books Issued by a Staff Member
+    FUNCTION Calculate_Staff_Books_Issued(f_staff_id IN NUMBER) RETURN NUMBER IS
+        total_issued NUMBER;
+    BEGIN
+        SELECT COUNT(*)
+        INTO total_issued
+        FROM BOOK_ISSUE
+        WHERE Issued_by = f_staff_id;
+
+        RETURN NVL(total_issued, 0);
+    END;
+
+    -- Function: Check Book Availability
+    FUNCTION Check_Book_Availability(f_book_id IN NUMBER) RETURN VARCHAR2 IS
+        copies_available NUMBER;
+    BEGIN
+        SELECT Copies_available
+        INTO copies_available
+        FROM BOOK
+        WHERE Book_id = f_book_id;
+
+        IF copies_available > 0 THEN
+            RETURN 'Available';
+        ELSE
+            RETURN 'Not Available';
+        END IF;
+    END;
+
+    -- Procedure: Update Book Details
+    PROCEDURE Update_Book_Details(p_book_id IN NUMBER, p_new_copies_total IN NUMBER, p_new_copies_available IN NUMBER) IS
+        v_exists NUMBER;
+    BEGIN
+        SELECT COUNT(*)
+        INTO v_exists
+        FROM BOOK
+        WHERE Book_id = p_book_id;
+
+        IF v_exists = 0 THEN
+            RAISE_APPLICATION_ERROR(-20001, 'Book does not exist.');
+        END IF;
+
+        UPDATE BOOK
+        SET Copies_total = p_new_copies_total,
+            Copies_available = p_new_copies_available
+        WHERE Book_id = p_book_id;
+
+        DBMS_OUTPUT.PUT_LINE('Book with ID ' || p_book_id || ' updated successfully.');
+    END;
+
+    -- Procedure: Update Book Issue Status
+    PROCEDURE Update_Book_Issue_Status(p_issue_id IN NUMBER, p_new_status IN VARCHAR2) IS
+        v_exists NUMBER;
+    BEGIN
+        SELECT COUNT(*)
+        INTO v_exists
+        FROM BOOK_ISSUE
+        WHERE Issue_id = p_issue_id;
+
+        IF v_exists = 0 THEN
+            RAISE_APPLICATION_ERROR(-20001, 'Book issue record does not exist.');
+        END IF;
+
+        UPDATE BOOK_ISSUE
+        SET Issue_status = p_new_status
+        WHERE Issue_id = p_issue_id;
+
+        DBMS_OUTPUT.PUT_LINE('Book issue with ID ' || p_issue_id || ' updated to status: ' || p_new_status);
+    END;
+
+    -- Procedure: Update Member Details
+    PROCEDURE Update_Member_Details(p_member_id IN NUMBER, p_new_city IN VARCHAR2, p_new_email IN VARCHAR2, p_new_status IN VARCHAR2) IS
+        v_exists NUMBER;
+    BEGIN
+        SELECT COUNT(*)
+        INTO v_exists
+        FROM MEMBER
+        WHERE Member_id = p_member_id;
+
+        IF v_exists = 0 THEN
+            RAISE_APPLICATION_ERROR(-20001, 'Member does not exist.');
+        END IF;
+
+        UPDATE MEMBER
+        SET City = p_new_city,
+            Email = p_new_email,
+            Active_status = p_new_status
+        WHERE Member_id = p_member_id;
+
+        DBMS_OUTPUT.PUT_LINE('Member with ID ' || p_member_id || ' updated successfully.');
+    END;
+
+    -- Procedure: Update Fine Payment
+    PROCEDURE Update_Fine_Payment(p_fine_id IN NUMBER, p_payment_amount IN NUMBER) IS
+        v_exists NUMBER;
+        v_remaining NUMBER;
+    BEGIN
+        SELECT COUNT(*)
+        INTO v_exists
+        FROM FINE_DUE
+        WHERE Fine_id = p_fine_id;
+
+        IF v_exists = 0 THEN
+            RAISE_APPLICATION_ERROR(-20001, 'Fine record does not exist.');
+        END IF;
+
+        SELECT Fine_amount - COALESCE(SUM(Payment_amount), 0)
+        INTO v_remaining
+        FROM FINE_DUE d
+        LEFT JOIN FINE_PAYMENT p ON d.Fine_id = p.Fine_id
+        WHERE d.Fine_id = p_fine_id
+        GROUP BY d.Fine_amount;
+
+        IF v_remaining < p_payment_amount THEN
+            RAISE_APPLICATION_ERROR(-20002, 'Payment exceeds remaining fine amount.');
+        END IF;
+
+        INSERT INTO FINE_PAYMENT (Fine_id, Payment_date, Payment_amount, Member_id)
+        SELECT p_fine_id, SYSDATE, p_payment_amount, Member_id
+        FROM FINE_DUE
+        WHERE Fine_id = p_fine_id;
+
+        DBMS_OUTPUT.PUT_LINE('Payment of ' || p_payment_amount || ' recorded for Fine ID: ' || p_fine_id);
+        COMMIT;
+    END;
+END Library_Pkg;
+/
