@@ -1,0 +1,95 @@
+--Function 1: Calculate Total Fine for a Member
+CREATE OR REPLACE FUNCTION Calculate_Total_Fine (
+    f_member_id IN NUMBER
+) RETURN NUMBER IS
+    total_fine NUMBER;
+BEGIN
+    SELECT SUM(Fine_amount)
+    INTO total_fine
+    FROM FINE_DUE
+    WHERE Member_id = f_member_id;
+
+    RETURN NVL(total_fine, 0);
+END;
+/
+
+--Function 2: Calculate Total Fine Paid by a Member
+CREATE OR REPLACE FUNCTION Calculate_Total_Fine_Paid (
+    f_member_id IN NUMBER
+) RETURN NUMBER IS
+    total_fine_paid NUMBER;
+BEGIN
+    SELECT SUM(Payment_amount)
+    INTO total_fine_paid
+    FROM FINE_PAYMENT
+    WHERE Member_id = f_member_id;
+
+    RETURN NVL(total_fine_paid, 0);
+END;
+/
+--Calculate Late Fee for a Book Issue
+CREATE OR REPLACE FUNCTION Calculate_Late_Fee (
+    f_issue_id IN NUMBER,
+    f_daily_fee IN NUMBER
+) RETURN NUMBER IS
+    late_days NUMBER;
+    late_fee NUMBER;
+BEGIN
+    SELECT GREATEST(SYSDATE - Return_date, 0)
+    INTO late_days
+    FROM BOOK_ISSUE
+    WHERE Issue_id = f_issue_id;
+
+    late_fee := late_days * f_daily_fee;
+    RETURN late_fee;
+END;
+/
+
+--Calculate Total Books Borrowed by a Member
+CREATE OR REPLACE FUNCTION Calculate_Books_Borrowed (
+    f_member_id IN NUMBER
+) RETURN NUMBER IS
+    total_books NUMBER;
+BEGIN
+    SELECT COUNT(*)
+    INTO total_books
+    FROM BOOK_ISSUE
+    WHERE Member_id = f_member_id;
+
+    RETURN NVL(total_books, 0);
+END;
+/
+
+--Calculate Total Books Issued by a Staff Member
+CREATE OR REPLACE FUNCTION Calculate_Staff_Books_Issued (
+    f_staff_id IN NUMBER
+) RETURN NUMBER IS
+    total_issued NUMBER;
+BEGIN
+    SELECT COUNT(*)
+    INTO total_issued
+    FROM BOOK_ISSUE
+    WHERE Issued_by = f_staff_id;
+
+    RETURN NVL(total_issued, 0);
+END;
+/
+
+--Calculate Availability of a Book
+CREATE OR REPLACE FUNCTION Check_Book_Availability (
+    f_book_id IN NUMBER
+) RETURN VARCHAR2 IS
+    copies_available NUMBER;
+BEGIN
+    SELECT Copies_available
+    INTO copies_available
+    FROM BOOK
+    WHERE Book_id = f_book_id;
+
+    IF copies_available > 0 THEN
+        RETURN 'Available';
+    ELSE
+        RETURN 'Not Available';
+    END IF;
+END;
+/
