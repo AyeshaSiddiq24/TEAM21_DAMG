@@ -3,12 +3,12 @@
 
 **Library Management System (LMS)**
 
----
+
 
 ## **Overview**
 This project automates the operations of a library by implementing a robust database solution. It adheres to key business rules, supporting user and book management, borrowing and returning transactions, and fine calculations while ensuring data accuracy and security during concurrent user interactions.
 
----
+
 
 ## **Features**
 
@@ -30,7 +30,7 @@ This project automates the operations of a library by implementing a robust data
 ### **Error Handling**
 - Extensive validations ensure business rules are met, including preventing borrowing by inactive members or exceeding stock availability.
 
----
+
 
 ## **Project Components**
 
@@ -73,7 +73,7 @@ This project automates the operations of a library by implementing a robust data
   - Borrowing trends by category and location.
   - Fine collection summary by status (paid/unpaid).
 
----
+
 
 ## **Execution Steps**
 
@@ -108,7 +108,7 @@ This project automates the operations of a library by implementing a robust data
 7. **Run Reports**
    - Execute `Reports.sql` to generate insights.
 
----
+
 
 ## **Error Handling**
 
@@ -120,9 +120,9 @@ This project automates the operations of a library by implementing a robust data
 - **ORA-00001 (Unique Constraint Violated)**:
   - Check for duplicate data during INSERT operations.
 
----
+
 
 ## **Conclusion**
 The **Library Management System** project demonstrates comprehensive database management, including role-based access control, transaction processing, and robust reporting. It adheres to real-world business rules, ensuring seamless library operations and a secure, scalable solution for managing books and members effectively.
 
----
+
