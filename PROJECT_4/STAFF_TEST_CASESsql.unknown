@@ -1,0 +1,65 @@
+--1. Managing Book Inventory 
+
+--i] View Current Book Inventory 
+SELECT Book_id, Book_title, Copies_total, Copies_available 
+FROM BOOK;
+
+--ii] Add a New Book
+INSERT INTO BOOK (Book_id, Book_title, Category_id, Publisher_id, Copies_total, Copies_available)
+VALUES (BOOK_SEQ.NEXTVAL, 'New Book Title', 3, 2, 10, 10);
+
+--iii]Update Book Availability
+UPDATE BOOK
+SET Copies_available = Copies_available + 1
+WHERE Book_id = 7;
+
+--2. Handling Borrow and Return Transactions
+
+--i]Issue a Book to a Member
+INSERT INTO BOOK_ISSUE (Book_id, Member_id, Issue_date, Return_date, Issue_status, Issued_by)
+VALUES (7, 3, SYSDATE, SYSDATE + 14, 'Issued', 1);
+
+--ii]Record Book Return
+UPDATE /*+ NO_PARALLEL(BOOK_ISSUE) */ BOOK_ISSUE
+SET Return_date = SYSDATE, 
+    Issue_status = 'Returned'
+WHERE Book_id = 7
+  AND Member_id = 3
+  AND Issue_status = 'Issued';
+  
+//validation
+SELECT * 
+FROM BOOK_ISSUE
+WHERE Book_id = 7
+  AND Member_id = 3;
+
+--iii] View member borrowing history
+SELECT bi.Book_id, b.Book_title, bi.Issue_date, bi.Return_date, bi.Issue_status
+FROM BOOK_ISSUE bi
+JOIN BOOK b ON bi.Book_id = b.Book_id
+WHERE bi.Member_id = (SELECT Member_id FROM MEMBER WHERE Email = 'michael.scott@example.com');
+
+--iv] Check member active status
+SELECT First_name, Last_name, Active_status
+FROM MEMBER
+WHERE Email = 'michael.scott@example.com';
+
+--V]Generate Reports
+--Most Borrowed Books
+SELECT b.Book_title, COUNT(bi.Book_id) AS Borrow_Count
+FROM BOOK_ISSUE bi
+JOIN BOOK b ON bi.Book_id = b.Book_id
+GROUP BY b.Book_title
+ORDER BY Borrow_Count DESC;
+
+--Fine Collection Summary
+SELECT m.Member_id, m.First_name, m.Last_name, SUM(fp.Payment_amount) AS Total_Fine_Paid
+FROM FINE_PAYMENT fp
+JOIN MEMBER m ON fp.Member_id = m.Member_id
+GROUP BY m.Member_id, m.First_name, m.Last_name
+ORDER BY Total_Fine_Paid DESC;
+
+
+
+
+
