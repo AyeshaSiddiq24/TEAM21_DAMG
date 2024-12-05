@@ -74,7 +74,7 @@ This project automates the operations of a library by implementing a robust data
   - Fine collection summary by status (paid/unpaid).
 
 ## **Physcial Diagram**
-![ER Diagram](images/library_er_diagram.png)
+![ER Diagram]([images/library_er_diagram.png](https://github.com/AyeshaSiddiq24/TEAM21_DAMG/blob/main/E-R%20DIAGRAM.jpeg))
 
 
 ## **Execution Steps**
