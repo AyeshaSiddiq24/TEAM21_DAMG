@@ -1,0 +1,74 @@
+--Trigger 1: Update Book Inventory After an Issue
+CREATE OR REPLACE TRIGGER Update_Book_Inventory_After_Issue
+FOR INSERT ON BOOK_ISSUE
+COMPOUND TRIGGER
+
+    TYPE Book_IDs_Table IS TABLE OF NUMBER INDEX BY PLS_INTEGER;
+    Book_IDs Book_IDs_Table;
+
+    -- Before Statement: Initialize collection
+    BEFORE STATEMENT IS
+    BEGIN
+        Book_IDs.DELETE;
+    END BEFORE STATEMENT;
+
+    -- After Each Row: Collect Book IDs
+    AFTER EACH ROW IS
+    BEGIN
+        Book_IDs(Book_IDs.COUNT + 1) := :NEW.Book_id;
+    END AFTER EACH ROW;
+
+    -- After Statement: Update BOOK table
+    AFTER STATEMENT IS
+    BEGIN
+        FOR i IN Book_IDs.FIRST .. Book_IDs.LAST LOOP
+            UPDATE BOOK
+            SET Copies_available = Copies_available - 1
+            WHERE Book_id = Book_IDs(i);
+
+            IF SQL%ROWCOUNT = 0 THEN
+                RAISE_APPLICATION_ERROR(-20002, 'No copies of the book are available for issue.');
+            END IF;
+        END LOOP;
+    END AFTER STATEMENT;
+
+END;
+/
+
+
+
+--Trigger 3: Prevent Duplicate Book Titles
+CREATE OR REPLACE TRIGGER Prevent_Duplicate_Books
+BEFORE INSERT OR UPDATE ON BOOK
+FOR EACH ROW
+DECLARE
+    PRAGMA AUTONOMOUS_TRANSACTION; -- Isolate the transaction
+    v_count NUMBER;
+BEGIN
+    SELECT COUNT(*) 
+    INTO v_count 
+    FROM BOOK 
+    WHERE LOWER(Book_title) = LOWER(:NEW.Book_title)
+      AND Category_id = :NEW.Category_id
+      AND Publisher_id = :NEW.Publisher_id
+      AND Book_id != :NEW.Book_id; -- Exclude the current row
+
+    IF v_count > 0 THEN
+        RAISE_APPLICATION_ERROR(-20001, 'Duplicate book titles are not allowed under the same category and publisher.');
+    END IF;
+END;
+/
+
+
+--Trigger 4:Prevent Negative Book Copies
+CREATE OR REPLACE TRIGGER Prevent_Negative_Book_Copies
+BEFORE UPDATE OF Copies_available ON BOOK
+FOR EACH ROW
+BEGIN
+    -- Ensure the new number of available copies is not negative
+    IF :NEW.Copies_available < 0 THEN
+        RAISE_APPLICATION_ERROR(-20003, 'Number of available copies cannot be negative. Adjust inventory manually if needed.');
+    END IF;
+END;
+/
+
