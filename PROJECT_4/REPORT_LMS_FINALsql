@@ -1,0 +1,72 @@
+--1. Members with the Longest Active Membership
+SELECT 
+    Member_id, 
+    First_name || ' ' || Last_name AS Member_Name, 
+    Membership_start_date, 
+    Membership_end_date, 
+    (Membership_end_date - Membership_start_date) AS Membership_Duration
+FROM MEMBER
+ORDER BY Membership_Duration DESC
+FETCH FIRST 5 ROWS ONLY;
+/
+
+--2. Books with the Highest Fine Accumulated
+SELECT 
+    b.Book_title, 
+    SUM(fd.Fine_amount) AS Total_Fines
+FROM FINE_DUE fd
+INNER JOIN BOOK_ISSUE bi ON fd.Member_id = bi.Member_id
+INNER JOIN BOOK b ON bi.Book_id = b.Book_id
+GROUP BY b.Book_title
+ORDER BY Total_Fines DESC
+FETCH FIRST 5 ROWS ONLY;
+/
+--3. Staff Handling the Most Returns
+SELECT 
+    ls.Staff_id, 
+    ls.Staff_name, 
+    COUNT(bi.Return_date) AS Returns_Handled
+FROM LIB_STAFF ls
+INNER JOIN BOOK_ISSUE bi ON ls.Staff_id = bi.Issued_by
+WHERE bi.Return_date IS NOT NULL
+GROUP BY ls.Staff_id, ls.Staff_name
+ORDER BY Returns_Handled DESC
+FETCH FIRST 5 ROWS ONLY;
+/
+
+--4. Average Borrow Time for Each Category
+SELECT 
+    c.Category_name, 
+    AVG(bi.Return_date - bi.Issue_date) AS Avg_Borrow_Duration
+FROM BOOK_ISSUE bi
+INNER JOIN BOOK b ON bi.Book_id = b.Book_id
+INNER JOIN CATEGORY c ON b.Category_id = c.Category_id
+WHERE bi.Return_date IS NOT NULL
+GROUP BY c.Category_name
+ORDER BY Avg_Borrow_Duration DESC;
+/
+
+--5.Popular Authors by Number of Borrowed Books
+SELECT 
+    a.First_name || ' ' || a.Last_name AS Author_Name, 
+    COUNT(bi.Issue_id) AS Total_Borrowed
+FROM AUTHOR a
+INNER JOIN BOOK b ON a.Book_id = b.Book_id
+INNER JOIN BOOK_ISSUE bi ON b.Book_id = bi.Book_id
+GROUP BY a.First_name, a.Last_name
+ORDER BY Total_Borrowed DESC
+FETCH FIRST 5 ROWS ONLY;
+/
+--6.Shelf Utilization by Category
+SELECT 
+    c.Category_name, 
+    COUNT(l.Book_id) AS Books_On_Shelf
+FROM LOCATION l
+INNER JOIN BOOK b ON l.Book_id = b.Book_id
+INNER JOIN CATEGORY c ON b.Category_id = c.Category_id
+GROUP BY c.Category_name
+ORDER BY Books_On_Shelf DESC;
+/
+
+
+
