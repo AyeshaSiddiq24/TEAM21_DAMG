@@ -73,6 +73,8 @@ This project automates the operations of a library by implementing a robust data
   - Borrowing trends by category and location.
   - Fine collection summary by status (paid/unpaid).
 
+## **Physcial Diagram**
+![ER Diagram](images/library_er_diagram.png)
 
 
 ## **Execution Steps**
